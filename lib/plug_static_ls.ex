@@ -103,8 +103,8 @@ defmodule Plug.Static.Ls do
       end
 
       path = path(from, segments)
-      encoding = file_encoding(conn, path)
-      serve_static(encoding, segments, headers)
+      directory_info = file_directory_info(conn, path)
+      serve_directory_listing(directory_info, segments, headers)
     else
       conn
     end
@@ -129,21 +129,19 @@ defmodule Plug.Static.Ls do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_static({:ok, conn, file_info, path}, segments, headers) do
-    content_type = segments |> List.last |> MIME.from_path
-
+  defp serve_directory_listing({:ok, conn, file_info, path}, segments, headers) do
     conn
-    |> put_resp_header("content-type", content_type)
+    |> put_resp_header("content-type", "text/plain")
     |> merge_resp_headers(headers)
     |> send_file(200, path)
     |> halt
   end
 
-  defp serve_static({:error, conn}, _segments, _headers) do
+  defp serve_directory_listing({:error, conn}, _segments, _headers) do
     conn
   end
 
-  defp file_encoding(conn, path) do
+  defp file_directory_info(conn, path) do
     cond do
       file_info = directory_file_info(path) ->
         {:ok, conn, file_info, path}
@@ -152,6 +150,7 @@ defmodule Plug.Static.Ls do
     end
   end
 
+  # XXX: should this code be like this? Isn't File module function sufficient?
   defp directory_file_info(path) do
     case :prim_file.read_file_info(path) do
       {:ok, file_info(type: :directory) = file_info} ->
