@@ -16,5 +16,5 @@
 <body>
 <h1>Index of <%= Plug.HTML.html_escape(basepath) %></h1>
 <hr>
-<p><a href="..">Parent Directory</a></p>
+<p><a href="<%= Plug.HTML.html_escape(basepath) %>/..">Parent Directory</a></p>
 <ul>
