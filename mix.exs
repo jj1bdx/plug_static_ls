@@ -21,7 +21,7 @@ defmodule Plug.Static.Ls.Mixfile do
   end
 
   defp package do
-    [licenses: ["MIT"],
+    [licenses: ["Apache 2"],
      maintainers: ["Kenji Rikitake"],
 	 links: %{"GitHub" => "https://github.com/jj1bdx/plug_static_ls"}]
   end
