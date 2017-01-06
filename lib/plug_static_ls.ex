@@ -100,7 +100,7 @@ defmodule Plug.Static.Ls do
 
       path = path(from, segments)
       directory_info = file_directory_info(conn, path)
-      serve_directory_listing(directory_info, at, segments)
+      serve_directory_listing(directory_info, segments)
     else
       conn
     end
@@ -125,15 +125,15 @@ defmodule Plug.Static.Ls do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
-    subpath = at <> "/" <> :erlang.list_to_binary(segments)
+  defp serve_directory_listing({:ok, conn, _file_info, path}, segments) do
+    subpath = :erlang.list_to_binary(segments)
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, make_ls(path, subpath))
     |> halt
   end
 
-  defp serve_directory_listing({:error, conn}, _at, _segments) do
+  defp serve_directory_listing({:error, conn}, _segments) do
     conn
   end
 
@@ -158,7 +158,7 @@ defmodule Plug.Static.Ls do
     :erlang.list_to_binary(
       Enum.map(pathlist,
                fn(x) ->
-                 gen_ls_entry(:erlang.list_to_binary(x), subpath) end))
+                 gen_ls_entry(:erlang.list_to_binary(x)) end))
     <>
     # postamble
     """
@@ -168,8 +168,8 @@ defmodule Plug.Static.Ls do
     """
   end
 
-  defp gen_ls_entry(path, subpath) do
-    "<li><a href=\"" <> URI.encode(subpath <> path) <> "\">" <>
+  defp gen_ls_entry(path) do
+    "<li><a href=\"" <> URI.encode(path) <> "\">" <>
     Plug.HTML.html_escape(path) <> "</a></li>\n"
   end
 
