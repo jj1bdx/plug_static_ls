@@ -11,6 +11,7 @@
         table { border: 0; }
   ul  { font-family: monospace; }
 </style>
+<base href="<%= Plug.HTML.html_escape(basepath) %>">
 </head> 
 <body>
 <h1>Index of <%= Plug.HTML.html_escape(basepath) %></h1>
