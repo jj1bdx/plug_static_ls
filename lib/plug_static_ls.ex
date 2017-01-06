@@ -138,6 +138,8 @@ defmodule Plug.Static.Ls do
 
   def make_ls(path, segments) do
     {:ok, pathlist} = :prim_file.list_dir_all(path)
+    # segments is a list of strings
+    [subpath | _] =segments
     # preamble
     """
     <html>
@@ -147,7 +149,7 @@ defmodule Plug.Static.Ls do
     """
     <>
     "<p>Directory listing of " <>
-    Plug.HTML.html_escape(segments) <>
+    Plug.HTML.html_escape(subpath) <>
     "</p>\n" <>
     """
     <hr><ul>
