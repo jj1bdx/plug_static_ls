@@ -158,7 +158,8 @@ defmodule Plug.Static.Ls do
     # list entries
     :erlang.list_to_binary(
       Enum.map(pathlist,
-               fn(x) -> gen_ls_entry(:erlang.list_to_binary(x)) end))
+               fn(x) ->
+                 gen_ls_entry(:erlang.list_to_binary(x), subpath) end))
     <>
     # postamble
     """
@@ -168,8 +169,8 @@ defmodule Plug.Static.Ls do
     """
   end
 
-  defp gen_ls_entry(path) do
-    "<li><a href=\"" <> URI.encode(path) <> "\">" <>
+  defp gen_ls_entry(path, subpath) do
+    "<li><a href=\"" <> URI.encode(subpath <> path) <> "\">" <>
     Plug.HTML.html_escape(path) <> "</a></li>\n"
   end
 
