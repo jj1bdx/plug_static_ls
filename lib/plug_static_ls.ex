@@ -15,60 +15,63 @@
 
 defmodule PlugStaticLs do
   @moduledoc """
-  A plug for serving directory listing on a static asset directory.
-  Note: this module only serves the directory listing. For serving
-  the static asset contents, use `Plug.Static`.
 
-  It requires two options:
+A plug for serving directory listing on a static asset directory.
 
-    * `:at` - the request path to reach for the static assets.
-      It must be a string.
+Note: this module only serves the directory listing. For serving
+the static asset contents, use `Plug.Static`.
 
-    * `:from` - the file system path to read the static assets from.
-      It can be either: a string containing a file system path, an
-      atom representing the application name (where assets will
-      be served from `priv/static`), or a tuple containing the
-      application name and the directory to serve assets from (besides
-      `priv/static`).
+It requires two options:
 
-  The preferred form is to use `:from` with an atom or tuple,
-  since it will make your application independent from the
-  starting directory. On the other hand, if you want to serve
-  the directory listing for a specific directory, use the file
-  system path.
+* `:at` - the request path to reach for the static assets.
+  It must be a string.
 
-  If a static asset directory cannot be found, `PlugStaticLs`
-  simply forwards the connection to the rest of the pipeline.
-  If the directory is found, `PlugStaticLs` returns the
-  directory listing page in HTML.
+* `:from` - the file system path to read the static assets from.
+  It can be either: a string containing a file system path, an
+  atom representing the application name (where assets will
+  be served from `priv/static`), or a tuple containing the
+  application name and the directory to serve assets from (besides
+  `priv/static`).
 
-  ## Options
+The preferred form is to use `:from` with an atom or tuple,
+since it will make your application independent from the
+starting directory. On the other hand, if you want to serve
+the directory listing for a specific directory, use the file
+system path.
 
-    * `:only` - filters which requests to serve. This is useful to avoid
-      file system traversals on every request when this plug is mounted
-      at `"/"`. For example, if `only: ["dir1", "dir2"]` is
-      specified, only files under the "dir1" and "dir2" directories
-      will be served by `PlugStaticLs`. Defaults to `nil` (no filtering).
+If a static asset directory cannot be found, `PlugStaticLs`
+simply forwards the connection to the rest of the pipeline.
+If the directory is found, `PlugStaticLs` returns the
+directory listing page in HTML.
 
-    * `:only_matching` - a relaxed version of `:only` that will
-      serve any request as long as one of the given values matches the
-      given path. For example, `only_matching: ["images", "logos"]`
-      will match any request that starts at "images" or "logos",
-      be it "/images", "/images-high", "/logos"
-      or "/logos-high". Such matches are useful when serving
-      digested files at the root. Defaults to `nil` (no filtering).
+## Options
 
-  ## Templates
+* `:only` - filters which requests to serve. This is useful to avoid
+  file system traversals on every request when this plug is mounted
+  at `"/"`. For example, if `only: ["dir1", "dir2"]` is
+  specified, only files under the "dir1" and "dir2" directories
+  will be served by `PlugStaticLs`. Defaults to `nil` (no filtering).
 
-  The following EEx templates are used to build the directory listing page:
+* `:only_matching` - a relaxed version of `:only` that will
+  serve any request as long as one of the given values matches the
+  given path. For example, `only_matching: ["images", "logos"]`
+  will match any request that starts at "images" or "logos",
+  be it "/images", "/images-high", "/logos"
+  or "/logos-high". Such matches are useful when serving
+  digested files at the root. Defaults to `nil` (no filtering).
 
-  * `lib/templates/plug_static_ls_header.html.eex`
-  * `lib/templates/plug_static_ls_footer.html.eex`
+## Templates
 
-  ## Examples
+The following EEx templates are used to build the directory listing page:
 
-  This plug can be mounted in a `Plug.Builder` pipeline as follows,
-  with and *after* `Plug.Static`:
+* `lib/templates/plug_static_ls_header.html.eex`
+* `lib/templates/plug_static_ls_direntry.html.eex`
+* `lib/templates/plug_static_ls_footer.html.eex`
+
+## Examples
+
+This plug can be mounted in a `Plug.Builder` pipeline as follows,
+with and *after* `Plug.Static`:
 
       defmodule MyPlug do
         use Plug.Builder
@@ -89,16 +92,17 @@ defmodule PlugStaticLs do
         end
       end
 
-  ## Related modules
+## Related modules
 
-  For serving `index.html` for a directory name, use [`Plug.Static.IndexHtml`](https://github.com/mbuhot/plug_static_index_html/).
-  For serving static files, use `Plug.Static`.
+For serving `index.html` for a directory name, use [`Plug.Static.IndexHtml`](https://github.com/mbuhot/plug_static_index_html/).
 
-  ## Acknowledgment
+For serving static files, use `Plug.Static`.
 
-  The source code is derived from `Plug.Static` module.
+## Acknowledgment
 
-  The directory listing page design is derived from [Yaws](http://yaws.hyber.org) Web Server.
+The source code is derived from `Plug.Static` module.
+
+The directory listing page design is derived from [Yaws](http://yaws.hyber.org) Web Server.
 
 """
 
@@ -201,7 +205,7 @@ defmodule PlugStaticLs do
   EEx.function_from_file :defp, :direntry_html,
       "lib/templates/plug_static_ls_direntry.html.eex", [:path, :basepath]
 
-  def make_ls(path, basepath) do
+  defp make_ls(path, basepath) do
     # returns UTF-8 pathnames
     {:ok, pathlist} = :prim_file.list_dir(path)
     :erlang.list_to_binary(
