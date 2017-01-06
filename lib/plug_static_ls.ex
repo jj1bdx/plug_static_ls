@@ -100,7 +100,7 @@ defmodule Plug.Static.Ls do
 
       path = path(from, segments)
       directory_info = file_directory_info(conn, path)
-      serve_directory_listing(directory_info, segments)
+      serve_directory_listing(directory_info, at, segments)
     else
       conn
     end
@@ -125,21 +125,20 @@ defmodule Plug.Static.Ls do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, _file_info, path}, segments) do
+  defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
+    subpath = at <> "/" <> segments
     conn
     |> put_resp_header("content-type", "text/html")
-    |> send_resp(200, make_ls(path, segments))
+    |> send_resp(200, make_ls(path, subpath))
     |> halt
   end
 
-  defp serve_directory_listing({:error, conn}, _segments) do
+  defp serve_directory_listing({:error, conn}, _at, _segments) do
     conn
   end
 
-  def make_ls(path, segments) do
+  def make_ls(path, subpath) do
     {:ok, pathlist} = :prim_file.list_dir_all(path)
-    # segments is a list of strings
-    [subpath | _] =segments
     # preamble
     """
     <html>
