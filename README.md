@@ -35,6 +35,13 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
     end
     ```
 
+## Prerequisites
+
+The filename locale of the Erlang VM must be explicitly specified to UTF-8.
+See Erlang's [`erl +fnu` option description](http://erlang.org/doc/man/erl.html) for the details.
+
+Note: Elixir assumes UTF-8 usage on the filenames and internal strings.
+
 ## Usage
 
 Add `Plug.Static.Ls` *after* `Plug.Static` in `endpoint.ex`
