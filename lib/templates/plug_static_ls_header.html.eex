@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Index of <%= Plug.HTML.html_escape(directory_path) %></title>
+<title>Index of <%= Plug.HTML.html_escape(base_path) %></title>
 <style type="text/css">
   img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
   td  { font-family: monospace; padding: 2px 3px; text-align:left;
@@ -13,6 +13,6 @@
 </style>
 </head> 
 <body>
-<h1>Index of <%= Plug.HTML.html_escape(directory_path) %></h1>
+<h1>Index of <%= Plug.HTML.html_escape(base_path) %></h1>
 <hr>
 <ul>

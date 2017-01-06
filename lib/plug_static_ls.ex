@@ -115,7 +115,7 @@ defmodule Plug.Static.Ls do
 
       path = path(from, segments)
       directory_info = file_directory_info(conn, path)
-      serve_directory_listing(directory_info, segments)
+      serve_directory_listing(directory_info, at, segments)
     else
       conn
     end
@@ -140,21 +140,24 @@ defmodule Plug.Static.Ls do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, _file_info, path}, segments) do
-    subpath = :erlang.list_to_binary(segments)
+  defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
+    subpath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
+    IO.inspect at, label: "at"
+    IO.inspect segments, label: "segments"
+    IO.inspect subpath, label: "subpath"
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, make_ls(path, subpath))
     |> halt
   end
 
-  defp serve_directory_listing({:error, conn}, _segments) do
+  defp serve_directory_listing({:error, conn}, _at, _segments) do
     conn
   end
 
   require EEx
   EEx.function_from_file :defp, :header_html, 
-      "lib/templates/plug_static_ls_header.html.eex", [:directory_path]
+      "lib/templates/plug_static_ls_header.html.eex", [:base_path]
   EEx.function_from_file :defp, :footer_html, 
       "lib/templates/plug_static_ls_footer.html.eex"
 
@@ -167,13 +170,13 @@ defmodule Plug.Static.Ls do
     :erlang.list_to_binary(
       Enum.map(pathlist,
                fn(x) ->
-                 gen_ls_entry(:erlang.list_to_binary(x)) end))
+                 gen_ls_entry(:erlang.list_to_binary(x), subpath) end))
     <>
     footer_html()
   end
 
-  defp gen_ls_entry(path) do
-    "<li><a href=\"" <> URI.encode(path) <> "\">" <>
+  defp gen_ls_entry(path, subpath) do
+    "<li><a href=\"" <> URI.encode(Path.join(subpath, path)) <> "\">" <>
     Plug.HTML.html_escape(path) <> "</a></li>\n"
   end
 
