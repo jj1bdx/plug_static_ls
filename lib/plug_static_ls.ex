@@ -141,13 +141,10 @@ defmodule Plug.Static.Ls do
   end
 
   defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
-    subpath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
-    IO.inspect at, label: "at"
-    IO.inspect segments, label: "segments"
-    IO.inspect subpath, label: "subpath"
+    basepath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
     conn
     |> put_resp_header("content-type", "text/html")
-    |> send_resp(200, make_ls(path, subpath))
+    |> send_resp(200, make_ls(path, basepath))
     |> halt
   end
 
@@ -157,26 +154,26 @@ defmodule Plug.Static.Ls do
 
   require EEx
   EEx.function_from_file :defp, :header_html, 
-      "lib/templates/plug_static_ls_header.html.eex", [:base_path]
+      "lib/templates/plug_static_ls_header.html.eex", [:basepath]
   EEx.function_from_file :defp, :footer_html, 
       "lib/templates/plug_static_ls_footer.html.eex"
 
-  def make_ls(path, subpath) do
-    {:ok, pathlist} = :prim_file.list_dir_all(path)
+  def make_ls(path, basepath) do
+    # returns UTF-8 pathnames
+    {:ok, pathlist} = :prim_file.list_dir(path)
     # preamble
-    header_html(subpath)
+    header_html(basepath)
     <>
     # list entries
     :erlang.list_to_binary(
-      Enum.map(pathlist,
-               fn(x) ->
-                 gen_ls_entry(:erlang.list_to_binary(x), subpath) end))
+      Enum.map(pathlist, fn(x) -> gen_ls_entry(to_string(x), basepath) end))
     <>
+    # postamble
     footer_html()
   end
 
-  defp gen_ls_entry(path, subpath) do
-    "<li><a href=\"" <> URI.encode(Path.join(subpath, path)) <> "\">" <>
+  defp gen_ls_entry(path, basepath) do
+    "<li><a href=\"" <> URI.encode(Path.join(basepath, path)) <> "\">" <>
     Plug.HTML.html_escape(path) <> "</a></li>\n"
   end
 
