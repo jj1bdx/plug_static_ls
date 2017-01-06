@@ -2,9 +2,18 @@
 
 Directory Index for Plug/Phoenix Static Assets
 
-## WARNING: not yet fully programmed
+## This module is still experimental
 
-__Remove this comment when fully programmed and set this repository as public__
+More thorough testing on directory traversal prevention is required.
+Use at your own risk.
+
+## WARNING: inherent vulnerability regarding directory listing
+
+Providing directory listing may reveal following vulnerabilities:
+
+* Contents of unintended files left in the directory
+
+*Do not provide* directory listing unless you are 100% sure about the contents in the directory.
 
 ## Installation
 
@@ -32,12 +41,12 @@ Add `Plug.Static.Ls` *after* `Plug.Static` in `endpoint.ex`
 
 ```Elixir
 plug Plug.Static, at: "/", from: :my_app
-plug Plug.Static.Ls, at: "/with_listing", from: :my_app
+plug Plug.Static.Ls, at: "/", from: :my_app, only: ~w(with_listing)
 ```
 
 ## License
 
-[MIT](https://jj1bdx.mit-license.org/)
+[Apache License 2](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## Acknowledment
 
