@@ -152,22 +152,16 @@ defmodule Plug.Static.Ls do
     conn
   end
 
+  require EEx
+  EEx.function_from_file :defp, :header_html, 
+      "lib/templates/plug_static_ls_header.html.eex", [:directory_path]
+  EEx.function_from_file :defp, :footer_html, 
+      "lib/templates/plug_static_ls_footer.html.eex"
+
   def make_ls(path, subpath) do
     {:ok, pathlist} = :prim_file.list_dir_all(path)
     # preamble
-    """
-    <html>
-    <head>
-    </head>
-    <body>
-    """
-    <>
-    "<p>Directory listing of " <>
-    Plug.HTML.html_escape(subpath) <>
-    "</p>\n" <>
-    """
-    <hr><ul>
-    """
+    header_html(subpath)
     <>
     # list entries
     :erlang.list_to_binary(
@@ -175,12 +169,7 @@ defmodule Plug.Static.Ls do
                fn(x) ->
                  gen_ls_entry(:erlang.list_to_binary(x)) end))
     <>
-    # postamble
-    """
-    </ul>
-    </body>
-    </html>
-    """
+    footer_html()
   end
 
   defp gen_ls_entry(path) do
