@@ -125,7 +125,7 @@ defmodule Plug.Static.Ls do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, file_info, path}, segments) do
+  defp serve_directory_listing({:ok, conn, _file_info, path}, segments) do
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, make_ls(path, segments))
@@ -141,11 +141,14 @@ defmodule Plug.Static.Ls do
     # preamble
     """
     <html>
+    <head>
+    </head>
     <body>
     """
     <>
-    "<p>Directory listing of " <> Plug.HTML.html_escape(segments) <> "</p>\n"
-    <>
+    "<p>Directory listing of " <>
+    Plug.HTML.html_escape(segments) <>
+    "</p>\n" <>
     """
     <hr><ul>
     """
