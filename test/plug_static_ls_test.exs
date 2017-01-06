@@ -1,6 +1,6 @@
-defmodule Plug.Static.LsTest do
+defmodule PlugStaticLsTest do
   use ExUnit.Case
-  doctest Plug.Static.Ls
+  doctest PlugStaticLs
 
   test "the truth" do
     assert 1 + 1 == 2

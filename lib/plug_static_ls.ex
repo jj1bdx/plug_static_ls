@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-defmodule Plug.Static.Ls do
+defmodule PlugStaticLs do
   @moduledoc """
   A plug for serving directory listing on a static asset directory.
   Note: this module only serves the directory listing. For serving
@@ -37,9 +37,9 @@ defmodule Plug.Static.Ls do
   the directory listing for a specific directory, use the file
   system path.
 
-  If a static asset directory cannot be found, `Plug.Static.Ls`
+  If a static asset directory cannot be found, `PlugStaticLs`
   simply forwards the connection to the rest of the pipeline.
-  If the directory is found, `Plug.Static.Ls` returns the
+  If the directory is found, `PlugStaticLs` returns the
   directory listing page in HTML.
 
   ## Options
@@ -48,7 +48,7 @@ defmodule Plug.Static.Ls do
       file system traversals on every request when this plug is mounted
       at `"/"`. For example, if `only: ["dir1", "dir2"]` is
       specified, only files under the "dir1" and "dir2" directories
-      will be served by `Plug.Static.Ls`. Defaults to `nil` (no filtering).
+      will be served by `PlugStaticLs`. Defaults to `nil` (no filtering).
 
     * `:only_matching` - a relaxed version of `:only` that will
       serve any request as long as one of the given values matches the
@@ -77,7 +77,7 @@ defmodule Plug.Static.Ls do
           at: "/public",
           from: :my_app,
           only: ~w(images robots.txt)
-        plug Plug.Static.Ls,
+        plug PlugStaticLs,
           at: "/public",
           from: :my_app,
           only: ~w(images)

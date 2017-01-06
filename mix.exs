@@ -1,4 +1,4 @@
-defmodule Plug.Static.Ls.Mixfile do
+defmodule PlugStaticLs.Mixfile do
   use Mix.Project
 
   @version "0.1.1"

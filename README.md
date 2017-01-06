@@ -1,4 +1,4 @@
-# Plug.Static.Ls
+# PlugStaticLs
 
 Directory Index for Plug/Phoenix Static Assets
 
@@ -44,11 +44,11 @@ Note: Elixir assumes UTF-8 usage on the filenames and internal strings.
 
 ## Usage
 
-Add `Plug.Static.Ls` *after* `Plug.Static` in `endpoint.ex`
+Add `PlugStaticLs` *after* `Plug.Static` in `endpoint.ex`
 
 ```Elixir
 plug Plug.Static, at: "/", from: :my_app
-plug Plug.Static.Ls, at: "/", from: :my_app, only: ~w(with_listing)
+plug PlugStaticLs, at: "/", from: :my_app, only: ~w(with_listing)
 ```
 
 ## License
