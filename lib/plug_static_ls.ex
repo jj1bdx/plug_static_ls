@@ -20,7 +20,7 @@ defmodule Plug.Static.Ls do
   the directory listing for a specific directory, use the file
   system path.
 
-  If a static asset cannot be found, `Plug.Static.Ls`
+  If a static asset directory cannot be found, `Plug.Static.Ls`
   simply forwards the connection to the rest of the pipeline.
 
   ## Options
@@ -39,8 +39,6 @@ defmodule Plug.Static.Ls do
       be it "/images/foo.png", "/images-high/foo.png", "/favicon.ico"
       or "/favicon-high.ico". Such matches are useful when serving
       digested files at the root. Defaults to `nil` (no filtering).
-
-    * `:headers` - other headers to be set when serving static assets.
 
   ## Acknowledgment
 
@@ -78,8 +76,6 @@ defmodule Plug.Static.Ls do
     only = Keyword.get(opts, :only, [])
     prefix = Keyword.get(opts, :only_matching, [])
 
-    headers = Keyword.get(opts, :headers, %{})
-
     from =
       case from do
         {_, _} -> from
@@ -88,10 +84,10 @@ defmodule Plug.Static.Ls do
         _ -> raise ArgumentError, ":from must be an atom, a binary or a tuple"
       end
 
-    {Plug.Router.Utils.split(at), from, only, prefix, headers}
+    {Plug.Router.Utils.split(at), from, only, prefix}
   end
 
-  def call(conn = %Conn{method: meth}, {at, from, only, prefix, headers})
+  def call(conn = %Conn{method: meth}, {at, from, only, prefix})
       when meth in @allowed_methods do
     segments = subset(at, conn.path_info)
 
@@ -104,7 +100,7 @@ defmodule Plug.Static.Ls do
 
       path = path(from, segments)
       directory_info = file_directory_info(conn, path)
-      serve_directory_listing(directory_info, segments, headers)
+      serve_directory_listing(directory_info, segments)
     else
       conn
     end
@@ -129,16 +125,47 @@ defmodule Plug.Static.Ls do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, file_info, path}, segments, headers) do
+  defp serve_directory_listing({:ok, conn, file_info, path}, segments) do
     conn
-    |> put_resp_header("content-type", "text/plain")
-    |> merge_resp_headers(headers)
-    |> send_file(200, path)
+    |> put_resp_header("content-type", "text/html")
+    |> send_resp(200, make_ls(path, segments))
     |> halt
   end
 
-  defp serve_directory_listing({:error, conn}, _segments, _headers) do
+  defp serve_directory_listing({:error, conn}, _segments) do
     conn
+  end
+
+  def make_ls(path, segments) do
+    {:ok, pathlist} = :prim_file.list_dir_all(path)
+    # preamble
+    """
+    <html>
+    <body>
+    """
+    <>
+    "<p>Directory listing of " <> Plug.HTML.html_escape(segments) <> "</p>\n"
+    <>
+    """
+    <hr><ul>
+    """
+    <>
+    # list entries
+    :erlang.list_to_binary(
+      Enum.map(pathlist,
+               fn(x) -> gen_ls_entry(:erlang.list_to_binary(x)) end))
+    <>
+    # postamble
+    """
+    </ul>
+    </body>
+    </html>
+    """
+  end
+
+  defp gen_ls_entry(path) do
+    "<li><a href=\"" <> URI.encode(path) <> "\">" <>
+    Plug.HTML.html_escape(path) <> "</a></li>\n"
   end
 
   defp file_directory_info(conn, path) do
