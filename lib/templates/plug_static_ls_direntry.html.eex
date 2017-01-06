@@ -1,0 +1,1 @@
+<li><a href="<%= URI.encode(Path.join(basepath, path)) %>"><%= Plug.HTML.html_escape(path) %></a></li>

@@ -198,24 +198,17 @@ defmodule Plug.Static.Ls do
       "lib/templates/plug_static_ls_header.html.eex", [:basepath]
   EEx.function_from_file :defp, :footer_html, 
       "lib/templates/plug_static_ls_footer.html.eex"
+  EEx.function_from_file :defp, :direntry_html,
+      "lib/templates/plug_static_ls_direntry.html.eex", [:path, :basepath]
 
   def make_ls(path, basepath) do
     # returns UTF-8 pathnames
     {:ok, pathlist} = :prim_file.list_dir(path)
-    # preamble
-    header_html(basepath)
-    <>
-    # list entries
     :erlang.list_to_binary(
-      Enum.map(pathlist, fn(x) -> gen_ls_entry(to_string(x), basepath) end))
-    <>
-    # postamble
-    footer_html()
-  end
-
-  defp gen_ls_entry(path, basepath) do
-    "<li><a href=\"" <> URI.encode(Path.join(basepath, path)) <> "\">" <>
-    Plug.HTML.html_escape(path) <> "</a></li>\n"
+      [header_html(basepath), 
+       Enum.map(pathlist,
+                fn(x) -> direntry_html(to_string(x), basepath) end),
+       footer_html()])
   end
 
   defp file_directory_info(conn, path) do
