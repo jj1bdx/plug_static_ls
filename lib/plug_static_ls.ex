@@ -126,7 +126,7 @@ defmodule Plug.Static.Ls do
   end
 
   defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
-    subpath = at <> "/" <> segments
+    subpath = at <> "/" <> :erlang.list_to_binary(segments)
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, make_ls(path, subpath))
