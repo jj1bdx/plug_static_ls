@@ -16,6 +16,8 @@
 defmodule Plug.Static.Ls do
   @moduledoc """
   A plug for serving directory listing on a static asset directory.
+  Note: this module only serves the directory listing. For serving
+  the static asset contents, use `Plug.Static`.
 
   It requires two options:
 
@@ -37,27 +39,66 @@ defmodule Plug.Static.Ls do
 
   If a static asset directory cannot be found, `Plug.Static.Ls`
   simply forwards the connection to the rest of the pipeline.
+  If the directory is found, `Plug.Static.Ls` returns the
+  directory listing page in HTML.
 
   ## Options
 
     * `:only` - filters which requests to serve. This is useful to avoid
       file system traversals on every request when this plug is mounted
-      at `"/"`. For example, if `only: ["images", "favicon.ico"]` is
-      specified, only files in the "images" directory and the exact
-      "favicon.ico" file will be served by `Plug.Static`. Defaults
-      to `nil` (no filtering).
+      at `"/"`. For example, if `only: ["dir1", "dir2"]` is
+      specified, only files under the "dir1" and "dir2" directories
+      will be served by `Plug.Static.Ls`. Defaults to `nil` (no filtering).
 
     * `:only_matching` - a relaxed version of `:only` that will
       serve any request as long as one of the given values matches the
-      given path. For example, `only_matching: ["images", "favicon"]`
-      will match any request that starts at "images" or "favicon",
-      be it "/images/foo.png", "/images-high/foo.png", "/favicon.ico"
-      or "/favicon-high.ico". Such matches are useful when serving
+      given path. For example, `only_matching: ["images", "logos"]`
+      will match any request that starts at "images" or "logos",
+      be it "/images", "/images-high", "/logos"
+      or "/logos-high". Such matches are useful when serving
       digested files at the root. Defaults to `nil` (no filtering).
+
+  ## Templates
+
+  The following EEx templates are used to build the directory listing page:
+
+  * `lib/templates/plug_static_ls_header.html.eex`
+  * `lib/templates/plug_static_ls_footer.html.eex`
+
+  ## Examples
+
+  This plug can be mounted in a `Plug.Builder` pipeline as follows,
+  with and *after* `Plug.Static`:
+
+      defmodule MyPlug do
+        use Plug.Builder
+
+        plug Plug.Static,
+          at: "/public",
+          from: :my_app,
+          only: ~w(images robots.txt)
+        plug Plug.Static.Ls,
+          at: "/public",
+          from: :my_app,
+          only: ~w(images)
+
+        plug :not_found
+
+        def not_found(conn, _) do
+          send_resp(conn, 404, "not found")
+        end
+      end
+
+  ## Related modules
+
+  For serving `index.html` for a directory name, use [`Plug.Static.IndexHtml`](https://github.com/mbuhot/plug_static_index_html/).
+  For serving static files, use `Plug.Static`.
 
   ## Acknowledgment
 
   The source code is derived from `Plug.Static` module.
+
+  The directory listing page design is derived from [Yaws](http://yaws.hyber.org) Web Server.
 
 """
 
