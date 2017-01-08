@@ -189,7 +189,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     basepath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
     conn
     |> put_resp_header("content-type", "text/html")
-    |> send_resp(200, make_ls(path, basepath))
+    |> send_resp(200, make_ls(path, basepath, conn.host))
     |> halt
   end
 
@@ -201,19 +201,19 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   EEx.function_from_file :defp, :header_html, 
       "lib/templates/plug_static_ls_header.html.eex", [:basepath]
   EEx.function_from_file :defp, :footer_html, 
-      "lib/templates/plug_static_ls_footer.html.eex"
+      "lib/templates/plug_static_ls_footer.html.eex", [:host]
   EEx.function_from_file :defp, :direntry_html,
       "lib/templates/plug_static_ls_direntry.html.eex",
       [:path, :basepath, :dirpath]
 
-  def make_ls(dirpath, basepath) do
+  def make_ls(dirpath, basepath, host) do
     # returns UTF-8 pathnames
     {:ok, pathlist} = :prim_file.list_dir(dirpath)
     :erlang.list_to_binary(
       [header_html(basepath), 
        Enum.map(pathlist,
                 fn(x) -> direntry_html(to_string(x), basepath, dirpath) end),
-       footer_html()])
+       footer_html(host)])
   end
 
   defp file_directory_info(conn, path) do
