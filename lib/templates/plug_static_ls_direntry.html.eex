@@ -33,5 +33,5 @@
 <tr>
   <td><%= iconimg %><a href="<%= uri %>"><%= disppath %></a></td>
   <td><%= mtime %></td>
-  <td><%= size %></td>
+  <td id="filesize"><%= size %></td>
 </tr>
