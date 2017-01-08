@@ -196,6 +196,12 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
         [] -> ["/"]
         other -> other
       end
+    at =
+      # rewrite null "at" to "/"
+      case at do
+        [] -> ["/"]
+        other -> other
+      end
     basepath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
     conn
     |> put_resp_header("content-type", "text/html")
