@@ -39,10 +39,12 @@ starting directory. On the other hand, if you want to serve
 the directory listing for a specific directory, use the file
 system path.
 
-If a static asset directory cannot be found, `PlugStaticLs`
+If a static asset directory specified is not found, `PlugStaticLs`
 simply forwards the connection to the rest of the pipeline.
-If the directory is found, `PlugStaticLs` returns the
-directory listing page in HTML.
+If the directory is found, `PlugStaticLs` verifies the path
+given in `conn.path_info` and the path must be a subset of `:at` path
+for showing the directory listing; otherwise `PlugStaticLs`
+forwards the connection to the rest of the pipeline.
 
 ## Options
 
@@ -179,13 +181,21 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     end
   end
 
-  defp allowed?(_only, _prefix, []), do: false
+  # null directory is allowed here
+  defp allowed?(_only, _prefix, nil), do: false
+  defp allowed?(_only, _prefix, []), do: true
   defp allowed?([], [], _list), do: true
   defp allowed?(only, prefix, [h|_]) do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
   defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
+    segments =
+      # rewrite null segments to "/"
+      case segments do
+        [] -> ["/"]
+        other -> other
+      end
     basepath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
     conn
     |> put_resp_header("content-type", "text/html")
@@ -225,7 +235,6 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     end
   end
 
-  # XXX: should this code be like this? Isn't File module function sufficient?
   defp directory_file_info(path) do
     case :prim_file.read_file_info(path) do
       {:ok, file_info(type: :directory) = file_info} ->
@@ -240,12 +249,13 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp path(from, segments),
     do: Path.join([from|segments])
 
+  # if not a subset, returns nil instead of []
   defp subset([h|expected], [h|actual]),
     do: subset(expected, actual)
   defp subset([], actual),
     do: actual
   defp subset(_, _),
-    do: []
+    do: nil
 
   defp invalid_path?([h|_]) when h in [".", "..", ""], do: true
   defp invalid_path?([h|t]), do: String.contains?(h, ["/", "\\", ":"]) or invalid_path?(t)
