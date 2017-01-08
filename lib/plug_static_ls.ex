@@ -216,7 +216,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       "lib/templates/plug_static_ls_direntry.html.eex",
       [:path, :basepath, :dirpath]
 
-  def make_ls(dirpath, basepath, host) do
+  defp make_ls(dirpath, basepath, host) do
     # returns UTF-8 pathnames
     {:ok, pathlist} = :prim_file.list_dir(dirpath)
     :erlang.list_to_binary(
