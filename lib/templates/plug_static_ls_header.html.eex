@@ -18,13 +18,14 @@
 <h1>Index of <%= htmlbasepath %></h1>
 <table>
 <tr>
-  <td>Type</td>
-  <td>Name</td>
+  <!-- blank.png -->
+  <td><img alt="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAMAAAD3n0w0AAAABlBMVEX////M//9zUa6lAAAAAnRSTlP/AOW3MEoAAAAQSURBVHgBY2DEAoao4KggAI7lAbmnaPoYAAAAAElFTkSuQmCC" />Name</td>
   <td>Last Modified</td>
   <td>Size</td>
 </tr>
-<tr><th colspan="4"><hr/></th></tr>
-<tr><td>[Dir]</td>
-  <td><a href="<%= htmlbasepath %>/..">Parent Directory</a></td>
+<tr><th colspan="3"><hr/></th></tr>
+<tr>
+  <!-- back.png -->
+  <td><img alt="[Dir]" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAMAAAD3n0w0AAAAElBMVEX////M//+ZmZlmZmYzMzMAAACei5rnAAAAAnRSTlP/AOW3MEoAAABVSURBVHgBbdFBCsBACENR45j7X7kQtC0T//KRjRhYevGgyjBL+VLZUtlS2VItS1AI1QQONgNZHCSUZJAc+ZB3sViFGzPcDmxZqdsvgRB/aJRu73D0HuO2BJfFYAozAAAAAElFTkSuQmCC" /><a href="<%= htmlbasepath %>/..">Parent Directory</a></td>
   <td></td><td></td>
 </tr>
