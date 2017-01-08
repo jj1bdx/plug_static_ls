@@ -1,31 +1,34 @@
 <%
   uri = URI.encode(Path.join(basepath, path))
   filepath = Path.join(dirpath, path)
-  info = :prim_file.read_file_info(to_charlist(filepath))
-  filetype = case info do
-    {:ok, file_info(type: :directory) = info} -> "[dir]"
-    {:ok, file_info(type: :regular) = info}   -> "[fil]"
-    {:ok, file_info(type: :symlink) = info}   -> "[sym]"
-    _ -> "[nil]"
+  {:ok, info} = :prim_file.read_file_info(to_charlist(filepath))
+  info_type = file_info(info, :type)
+  filetype = case info_type do
+    :directory -> "[Dir]"
+    :regular   -> "[File]"
+    :symlink   -> "[Symlink]"
+    _ -> "[NIL]"
   end
-  disppath = case info do
-    {:ok, file_info(type: :directory) = info} ->
-      disppath = Plug.HTML.html_escape(path <> "/")
+  disppath = case info_type do
+    :directory ->
+      Plug.HTML.html_escape(path <> "/")
     _ ->
-      disppath = Plug.HTML.html_escape(path)
+      Plug.HTML.html_escape(path)
   end
-  size = case info do
-    {:ok, file_info(type: :regular, size: x) = info} ->
-      to_string(x)
+  info_size = file_info(info, :size)
+  size = case info_type do
+    :regular -> to_string(info_size)
     _ -> ""
   end
-  mtime = case info do
-    {:ok, file_info(mtime: t) = info} ->
-      {td, tt} = t
-      (Date.from_erl!(td) |> Date.to_string) <>
-      " " <>
-      (Time.from_erl!(tt) |> Time.to_string)
-    _ -> ""
-  end
+  info_t = file_info(info, :mtime)
+  {info_td, info_tt} = info_t
+  mtime = (Date.from_erl!(info_td) |> Date.to_string) <>
+          " " <>
+          (Time.from_erl!(info_tt) |> Time.to_string)
 %>
-<li><%= filetype %>&nbsp;<a href="<%= uri %>"><%= disppath %></a>&nbsp;<%= mtime %>&nbsp;<%= size %></li>
+<tr>
+  <td><%= filetype %></td>
+  <td><a href="<%= uri %>"><%= disppath %></a></td>
+  <td><%= mtime %></td>
+  <td><%= size %></td>
+</tr>

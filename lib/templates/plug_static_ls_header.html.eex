@@ -11,10 +11,20 @@
         table { border: 0; }
   ul  { font-family: monospace; }
 </style>
-<base href="<%= Plug.HTML.html_escape(basepath) %>">
+<% htmlbasepath = Plug.HTML.html_escape(basepath) %>
+<base href="<%= htmlbasepath %>">
 </head> 
 <body>
-<h1>Index of <%= Plug.HTML.html_escape(basepath) %></h1>
-<hr>
-<p><a href="<%= Plug.HTML.html_escape(basepath) %>/..">Parent Directory</a></p>
-<ul>
+<h1>Index of <%= htmlbasepath %></h1>
+<table>
+<tr>
+  <td>Type</td>
+  <td>Name</td>
+  <td>Last Modified</td>
+  <td>Size</td>
+</tr>
+<tr><th colspan="4"><hr/></th></tr>
+<tr><td>[Dir]</td>
+  <td><a href="<%= htmlbasepath %>/..">Parent Directory</a></td>
+  <td></td><td></td>
+</tr>
