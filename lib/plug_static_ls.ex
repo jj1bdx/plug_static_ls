@@ -183,8 +183,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
   # null directory is allowed here
   defp allowed?(_only, _prefix, nil), do: false
-  defp allowed?(_only, _prefix, []), do: true
   defp allowed?([], [], _list), do: true
+  defp allowed?(_only, _prefix, []), do: false
   defp allowed?(only, prefix, [h|_]) do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
