@@ -60,3 +60,5 @@ plug PlugStaticLs, at: "/", from: :my_app, only: ~w(with_listing)
 The basic skeleton of this package is derived from
 [`static.ex`](https://github.com/elixir-lang/plug/blob/master/lib/plug/static.ex)
 aka `Plug.Static` module of the [Plug](https://github.com/elixir-lang/plug) repository.
+
+The directory listing page design is derived from [Yaws](http://yaws.hyber.org) Web Server.
