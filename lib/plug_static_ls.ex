@@ -203,15 +203,16 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   EEx.function_from_file :defp, :footer_html, 
       "lib/templates/plug_static_ls_footer.html.eex"
   EEx.function_from_file :defp, :direntry_html,
-      "lib/templates/plug_static_ls_direntry.html.eex", [:path, :basepath]
+      "lib/templates/plug_static_ls_direntry.html.eex",
+      [:path, :basepath, :dirpath]
 
-  defp make_ls(path, basepath) do
+  def make_ls(dirpath, basepath) do
     # returns UTF-8 pathnames
-    {:ok, pathlist} = :prim_file.list_dir(path)
+    {:ok, pathlist} = :prim_file.list_dir(dirpath)
     :erlang.list_to_binary(
       [header_html(basepath), 
        Enum.map(pathlist,
-                fn(x) -> direntry_html(to_string(x), basepath) end),
+                fn(x) -> direntry_html(to_string(x), basepath, dirpath) end),
        footer_html()])
   end
 

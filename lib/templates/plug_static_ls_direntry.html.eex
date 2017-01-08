@@ -1,1 +1,31 @@
-<li><a href="<%= URI.encode(Path.join(basepath, path)) %>"><%= Plug.HTML.html_escape(path) %></a></li>
+<%
+  uri = URI.encode(Path.join(basepath, path))
+  filepath = Path.join(dirpath, path)
+  info = :prim_file.read_file_info(to_charlist(filepath))
+  filetype = case info do
+    {:ok, file_info(type: :directory) = info} -> "[dir]"
+    {:ok, file_info(type: :regular) = info}   -> "[fil]"
+    {:ok, file_info(type: :symlink) = info}   -> "[sym]"
+    _ -> "[nil]"
+  end
+  disppath = case info do
+    {:ok, file_info(type: :directory) = info} ->
+      disppath = Plug.HTML.html_escape(path <> "/")
+    _ ->
+      disppath = Plug.HTML.html_escape(path)
+  end
+  size = case info do
+    {:ok, file_info(type: :regular, size: x) = info} ->
+      to_string(x)
+    _ -> ""
+  end
+  mtime = case info do
+    {:ok, file_info(mtime: t) = info} ->
+      {td, tt} = t
+      (Date.from_erl!(td) |> Date.to_string) <>
+      " " <>
+      (Time.from_erl!(tt) |> Time.to_string)
+    _ -> ""
+  end
+%>
+<li><%= filetype %>&nbsp;<a href="<%= uri %>"><%= disppath %></a>&nbsp;<%= mtime %>&nbsp;<%= size %></li>
