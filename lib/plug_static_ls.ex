@@ -161,7 +161,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       end
 
       path = path(from, segments)
-      directory_info = file_directory_info(conn, path)
+      directory_info = path_directory_info(conn, path)
       serve_directory_listing(directory_info, at, segments)
     else
       conn
@@ -222,21 +222,12 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
        footer_html(host)])
   end
 
-  defp file_directory_info(conn, path) do
-    cond do
-      _file_info = directory_file_info(path) ->
+  defp path_directory_info(conn, path) do
+    case :prim_file.read_file_info(path) do
+      {:ok, file_info(type: :directory) = _file_info} ->
         {:ok, conn, path}
       true ->
         {:error, conn}
-    end
-  end
-
-  defp directory_file_info(path) do
-    case :prim_file.read_file_info(path) do
-      {:ok, file_info(type: :directory) = file_info} ->
-        file_info
-      _ ->
-        nil
     end
   end
 
