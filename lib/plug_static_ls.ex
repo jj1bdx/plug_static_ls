@@ -153,6 +153,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       when meth in @allowed_methods do
     segments = subset(at, conn.path_info)
     conn = fetch_query_params(conn)
+    query = validate_query(conn.params["sort"])
 
     if allowed?(only, prefix, segments) do
       segments = Enum.map(segments, &uri_decode/1)
@@ -163,8 +164,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
       path = path(from, segments)
       directory_info = path_directory_info(conn, path)
-      serve_directory_listing(directory_info, at, segments,
-        get_sortfn(conn.params["sort"]))
+      serve_directory_listing(directory_info,
+                              at, segments, query)
     else
       conn
     end
@@ -191,15 +192,13 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, path}, at, segments, sortfn) do
+  defp serve_directory_listing({:ok, conn, path}, at, segments, query) do
     basepath = Path.join("/", Path.join(
                  Path.join(rewrite_nullpath(at)),
                  Path.join(rewrite_nullpath(segments))))
     conn
     |> put_resp_header("content-type", "text/html")
-    |> send_resp(200,
-         make_ls(path, basepath, conn.host, sortfn,
-                 map_sortopt(conn.params["sort"])))
+    |> send_resp(200, make_ls(path, basepath, conn.host, query))
     |> halt
   end
 
@@ -210,20 +209,20 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   require EEx
   EEx.function_from_file :defp, :header_html,
       "lib/templates/plug_static_ls_header.html.eex",
-      [:basepath, :map_sortopt]
+      [:basepath, :query]
   EEx.function_from_file :defp, :footer_html,
       "lib/templates/plug_static_ls_footer.html.eex", [:host]
   EEx.function_from_file :defp, :direntry_html,
       "lib/templates/plug_static_ls_direntry.html.eex",
-      [:path, :basepath, :info]
+      [:path, :basepath, :info, :query]
 
-  defp make_ls(dirpath, basepath, host, sortfn, map_sortopt) do
-    infolist = dir_file_list(dirpath, sortfn)
+  defp make_ls(dirpath, basepath, host, query) do
+    infolist = dir_file_list(dirpath, get_sortfn(query))
     :erlang.list_to_binary(
-      [header_html(basepath, map_sortopt),
+      [header_html(basepath, query),
        Enum.map(infolist,
         fn({pathchar, info}) ->
-          direntry_html(to_string(pathchar), basepath, info)
+          direntry_html(to_string(pathchar), basepath, info, query)
         end),
        footer_html(host)])
   end
@@ -244,6 +243,14 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       Enum.reject(infolist, fn({_, i}) -> i == nil end),
       sortfn)
   end
+
+  defp validate_query("name"), do: "name"
+  defp validate_query("name_rev"), do: "name_rev"
+  defp validate_query("mtime"), do: "mtime"
+  defp validate_query("mtime_rev"), do: "mtime_rev"
+  defp validate_query("size"), do: "size"
+  defp validate_query("size_rev"), do: "size_rev"
+  defp validate_query(_), do: ""
 
   defp get_sortfn("name"), do: &sortfn_name/2
   defp get_sortfn("name_rev"), do: &sortfn_name_rev/2

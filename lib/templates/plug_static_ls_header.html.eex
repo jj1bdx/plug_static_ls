@@ -21,6 +21,11 @@
     "/" -> ""
     other -> other
   end
+  map_sortopt = map_sortopt(query)
+  querystring = case query do
+    "" -> ""
+    other -> "?sort=" <> other
+  end
 %>
 <table>
 <tr>
@@ -35,7 +40,7 @@
   if trimmedpath !== "" do
 """
 <tr><td id=\"filetype\">[..]</td>
-  <td><a href=\"#{trimmedpath}/..\">Parent Directory</a></td>
+  <td><a href=\"#{trimmedpath}/../#{querystring}\">Parent Directory</a></td>
   <td></td><td></td>
 </tr>
 """

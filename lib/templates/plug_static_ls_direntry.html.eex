@@ -14,8 +14,11 @@
     :regular -> to_string(file_info(info, :size))
     _ -> ""
   end
-
-  uripath = URI.encode(Path.join(basepath, path))
+  querystring = case query do
+    "" -> ""
+    other -> "?sort=" <> other
+  end
+  uripath = URI.encode(Path.join(basepath, path)) <> querystring
   disppath = Plug.HTML.html_escape(path)
 
 %><tr><td id="filetype"><%= typestr %></td>
