@@ -189,20 +189,10 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, _file_info, path}, at, segments) do
-    segments =
-      # rewrite null segments to "/"
-      case segments do
-        [] -> ["/"]
-        other -> other
-      end
-    at =
-      # rewrite null "at" to "/"
-      case at do
-        [] -> ["/"]
-        other -> other
-      end
-    basepath = Path.join("/", Path.join(Path.join(at), Path.join(segments)))
+  defp serve_directory_listing({:ok, conn, path}, at, segments) do
+    basepath = Path.join("/", Path.join(
+                 Path.join(rewrite_nullpath(at)),
+                 Path.join(rewrite_nullpath(segments))))
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, make_ls(path, basepath, conn.host))
@@ -234,8 +224,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
   defp file_directory_info(conn, path) do
     cond do
-      file_info = directory_file_info(path) ->
-        {:ok, conn, file_info, path}
+      _file_info = directory_file_info(path) ->
+        {:ok, conn, path}
       true ->
         {:error, conn}
     end
@@ -266,4 +256,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp invalid_path?([h|_]) when h in [".", "..", ""], do: true
   defp invalid_path?([h|t]), do: String.contains?(h, ["/", "\\", ":"]) or invalid_path?(t)
   defp invalid_path?([]), do: false
+
+  defp rewrite_nullpath([]), do: ["/"]
+  defp rewrite_nullpath(list), do: list
 end
