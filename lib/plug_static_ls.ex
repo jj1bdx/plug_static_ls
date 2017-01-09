@@ -213,21 +213,51 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       [:path, :basepath, :info]
 
   defp make_ls(dirpath, basepath, host) do
-    # returns UTF-8 pathnames
-    {:ok, pathcharlist} = :prim_file.list_dir(dirpath)
+    infolist = dir_file_list(dirpath, &sortfn_filename/2)
     :erlang.list_to_binary(
       [header_html(basepath),
-       Enum.map(pathcharlist,
-        fn(pathchar) ->
-          path = to_string(pathchar)
-          filepath = Path.join(dirpath, path)
-          case :prim_file.read_link_info(to_charlist(filepath)) do
-            {:ok, info} ->
-              direntry_html(path, basepath, info)
-            {:error, _} -> ""
-          end
+       Enum.map(infolist,
+        fn({pathchar, info}) ->
+          direntry_html(to_string(pathchar), basepath, info)
         end),
        footer_html(host)])
+  end
+
+  defp dir_file_list(dirpath, sortfn) do
+    {:ok, list} = :prim_file.list_dir(dirpath)
+    infolist = Enum.map(list,
+      fn(name) ->
+        info =
+          case :prim_file.read_link_info(
+            to_charlist(Path.join(dirpath, to_string(name)))) do
+              {:ok, i} -> i
+              {:error, _} -> nil
+          end
+        {name, info}
+      end)
+    Enum.sort(
+      Enum.reject(infolist, fn({_, i}) -> i == nil end),
+      sortfn)
+  end
+
+  defp sortfn_filename({name1, _}, {name2, _}), do: name1 <= name2
+
+  defp sortfn_filename_rev({name1, _}, {name2, _}), do: name1 >= name2
+
+  defp sortfn_mtime({_, info1}, {_, info2}) do
+    mtime_to_string(file_info(info1, :mtime)) <=
+    mtime_to_string(file_info(info2, :mtime))
+  end
+
+  defp sortfn_mtime_rev({_, info1}, {_, info2}) do
+    mtime_to_string(file_info(info1, :mtime)) >=
+    mtime_to_string(file_info(info2, :mtime))
+  end
+
+  defp mtime_to_string({md, mt}) do
+    :erlang.list_to_binary(
+      [Date.from_erl!(md) |> Date.to_string, " ",
+       Time.from_erl!(mt) |> Time.to_string])
   end
 
   defp path_directory_info(conn, path) do
