@@ -9,26 +9,20 @@
     :symlink   -> "[Link]"
     _ -> "[Unknown]"
   end
-  disppath = case info_type do
-    :directory ->
-      Plug.HTML.html_escape(path <> "/")
-    _ ->
-      Plug.HTML.html_escape(path)
-  end
-  info_size = file_info(info, :size)
-  size = case info_type do
-    :regular -> to_string(info_size)
+  disppath = Plug.HTML.html_escape(path)
+  dispmod = case info_type do
+    :directory -> "/"
     _ -> ""
   end
-  info_t = file_info(info, :mtime)
-  {info_td, info_tt} = info_t
-  mtime = (Date.from_erl!(info_td) |> Date.to_string) <>
-          " " <>
-          (Time.from_erl!(info_tt) |> Time.to_string)
-%>
-<tr>
-  <td id="filetype"><%= typestr %></td>
-  <td><a href="<%= uri %>"><%= disppath %></a></td>
-  <td><%= mtime %></td>
-  <td id="filesize"><%= size %></td>
+  size = case info_type do
+    :regular -> to_string(file_info(info, :size))
+    _ -> ""
+  end
+  {info_td, info_tt} = file_info(info, :mtime)
+  mtime_date = Date.from_erl!(info_td) |> Date.to_string
+  mtime_time = Time.from_erl!(info_tt) |> Time.to_string
+%><tr><td id="filetype"><%= typestr %></td>
+<td><a href="<%= uri %>"><%= disppath %><%= dispmod %></a></td>
+<td><%= mtime_date %> <%= mtime_time %></td>
+<td id="filesize"><%= size %></td>
 </tr>
