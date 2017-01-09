@@ -204,21 +204,29 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   end
 
   require EEx
-  EEx.function_from_file :defp, :header_html, 
+  EEx.function_from_file :defp, :header_html,
       "lib/templates/plug_static_ls_header.html.eex", [:basepath]
-  EEx.function_from_file :defp, :footer_html, 
+  EEx.function_from_file :defp, :footer_html,
       "lib/templates/plug_static_ls_footer.html.eex", [:host]
   EEx.function_from_file :defp, :direntry_html,
       "lib/templates/plug_static_ls_direntry.html.eex",
-      [:path, :basepath, :dirpath]
+      [:path, :basepath, :info]
 
   defp make_ls(dirpath, basepath, host) do
     # returns UTF-8 pathnames
-    {:ok, pathlist} = :prim_file.list_dir(dirpath)
+    {:ok, pathcharlist} = :prim_file.list_dir(dirpath)
     :erlang.list_to_binary(
-      [header_html(basepath), 
-       Enum.map(pathlist,
-                fn(x) -> direntry_html(to_string(x), basepath, dirpath) end),
+      [header_html(basepath),
+       Enum.map(pathcharlist,
+        fn(pathchar) ->
+          path = to_string(pathchar)
+          filepath = Path.join(dirpath, path)
+          case :prim_file.read_link_info(to_charlist(filepath)) do
+            {:ok, info} ->
+              direntry_html(path, basepath, info)
+            {:error, _} -> ""
+          end
+        end),
        footer_html(host)])
   end
 
@@ -226,7 +234,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     case :prim_file.read_file_info(path) do
       {:ok, file_info(type: :directory) = _file_info} ->
         {:ok, conn, path}
-      true ->
+      _other ->
         {:error, conn}
     end
   end

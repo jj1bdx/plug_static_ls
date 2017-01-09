@@ -1,8 +1,4 @@
 <%
-  uri = URI.encode(Path.join(basepath, path))
-  filepath = Path.join(dirpath, path)
-  IO.inspect filepath, label: "direntry filepath"
-  {:ok, info} = :prim_file.read_link_info(to_charlist(filepath))
   info_type = file_info(info, :type)
   typestr = case info_type do
     :directory -> "[Dir]"
@@ -10,7 +6,6 @@
     :symlink   -> "[Link]"
     _ -> "[Unknown]"
   end
-  disppath = Plug.HTML.html_escape(path)
   dispmod = case info_type do
     :directory -> "/"
     _ -> ""
@@ -22,8 +17,12 @@
   {info_td, info_tt} = file_info(info, :mtime)
   mtime_date = Date.from_erl!(info_td) |> Date.to_string
   mtime_time = Time.from_erl!(info_tt) |> Time.to_string
+
+  uripath = URI.encode(Path.join(basepath, path))
+  disppath = Plug.HTML.html_escape(path)
+
 %><tr><td id="filetype"><%= typestr %></td>
-<td><a href="<%= uri %>"><%= disppath %><%= dispmod %></a></td>
+<td><a href="<%= uripath %>"><%= disppath %><%= dispmod %></a></td>
 <td><%= mtime_date %> <%= mtime_time %></td>
 <td id="filesize"><%= size %></td>
 </tr>
