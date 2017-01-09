@@ -15,16 +15,29 @@
 </head> 
 <body>
 <h1>Index of <%= htmlbasepath %></h1>
+<%
+  # Trim path if the path is at the top level
+  trimmedpath = case htmlbasepath do
+    "/" -> ""
+    other -> other
+  end
+%>
 <table>
 <tr>
   <td></td>
-  <td>Name</td>
-  <td>Last Modified</td>
-  <td id="filesize">Size</td>
+  <td><a href="<%= trimmedpath %>/?sort=<%= map_sortopt["name"] %>">Name</a></td>
+  <td><a href="<%= trimmedpath %>/?sort=<%= map_sortopt["mtime"] %>">Last Modified</a></td>
+  <td id="filesize"><a href="<%= trimmedpath %>/?sort=<%= map_sortopt["size"] %>">Size</a></td>
 </tr>
 <tr><th colspan="4"><hr/></th></tr>
-<tr>
-  <td id="filetype">[..]</td>
-  <td><a href="<%= htmlbasepath %>/..">Parent Directory</a></td>
+<%=
+  # Do not show "parent directory" if the path is at the top level
+  if trimmedpath !== "" do
+"""
+<tr><td id=\"filetype\">[..]</td>
+  <td><a href=\"#{trimmedpath}/..\">Parent Directory</a></td>
   <td></td><td></td>
 </tr>
+"""
+  else ""
+  end %>

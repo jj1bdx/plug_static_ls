@@ -152,6 +152,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   def call(conn = %Conn{method: meth}, {at, from, only, prefix})
       when meth in @allowed_methods do
     segments = subset(at, conn.path_info)
+    conn = fetch_query_params(conn)
 
     if allowed?(only, prefix, segments) do
       segments = Enum.map(segments, &uri_decode/1)
@@ -162,7 +163,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
       path = path(from, segments)
       directory_info = path_directory_info(conn, path)
-      serve_directory_listing(directory_info, at, segments)
+      serve_directory_listing(directory_info, at, segments,
+        get_sortfn(conn.params["sort"]))
     else
       conn
     end
@@ -189,33 +191,36 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
-  defp serve_directory_listing({:ok, conn, path}, at, segments) do
+  defp serve_directory_listing({:ok, conn, path}, at, segments, sortfn) do
     basepath = Path.join("/", Path.join(
                  Path.join(rewrite_nullpath(at)),
                  Path.join(rewrite_nullpath(segments))))
     conn
     |> put_resp_header("content-type", "text/html")
-    |> send_resp(200, make_ls(path, basepath, conn.host))
+    |> send_resp(200,
+         make_ls(path, basepath, conn.host, sortfn,
+                 map_sortopt(conn.params["sort"])))
     |> halt
   end
 
-  defp serve_directory_listing({:error, conn}, _at, _segments) do
+  defp serve_directory_listing({:error, conn}, _at, _segments, _sortfn) do
     conn
   end
 
   require EEx
   EEx.function_from_file :defp, :header_html,
-      "lib/templates/plug_static_ls_header.html.eex", [:basepath]
+      "lib/templates/plug_static_ls_header.html.eex",
+      [:basepath, :map_sortopt]
   EEx.function_from_file :defp, :footer_html,
       "lib/templates/plug_static_ls_footer.html.eex", [:host]
   EEx.function_from_file :defp, :direntry_html,
       "lib/templates/plug_static_ls_direntry.html.eex",
       [:path, :basepath, :info]
 
-  defp make_ls(dirpath, basepath, host) do
-    infolist = dir_file_list(dirpath, &sortfn_filename/2)
+  defp make_ls(dirpath, basepath, host, sortfn, map_sortopt) do
+    infolist = dir_file_list(dirpath, sortfn)
     :erlang.list_to_binary(
-      [header_html(basepath),
+      [header_html(basepath, map_sortopt),
        Enum.map(infolist,
         fn({pathchar, info}) ->
           direntry_html(to_string(pathchar), basepath, info)
@@ -240,9 +245,39 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       sortfn)
   end
 
-  defp sortfn_filename({name1, _}, {name2, _}), do: name1 <= name2
+  defp get_sortfn("name"), do: &sortfn_name/2
+  defp get_sortfn("name_rev"), do: &sortfn_name_rev/2
+  defp get_sortfn("mtime"), do: &sortfn_mtime/2
+  defp get_sortfn("mtime_rev"), do: &sortfn_mtime_rev/2
+  defp get_sortfn("size"), do: &sortfn_size/2
+  defp get_sortfn("size_rev"), do: &sortfn_size_rev/2
+  defp get_sortfn(_), do: &sortfn_name/2
 
-  defp sortfn_filename_rev({name1, _}, {name2, _}), do: name1 >= name2
+  defp map_sortopt("name") do
+    %{"name" => "name_rev", "mtime" => "mtime", "size" => "size"}
+  end
+  defp map_sortopt("name_rev") do
+    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  end
+  defp map_sortopt("mtime") do
+    %{"name" => "name", "mtime" => "mtime_rev", "size" => "size"}
+  end
+  defp map_sortopt("mtime_rev") do
+    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  end
+  defp map_sortopt("size") do
+    %{"name" => "name", "mtime" => "mtime", "size" => "size_rev"}
+  end
+  defp map_sortopt("size_rev") do
+    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  end
+  defp map_sortopt(_) do
+    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  end
+
+  defp sortfn_name({name1, _}, {name2, _}), do: name1 <= name2
+
+  defp sortfn_name_rev({name1, _}, {name2, _}), do: name1 >= name2
 
   defp sortfn_mtime({_, info1}, {_, info2}) do
     mtime_to_string(file_info(info1, :mtime)) <=
@@ -254,10 +289,29 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     mtime_to_string(file_info(info2, :mtime))
   end
 
+  defp sortfn_size({_, info1}, {_, info2}) do
+    file_size_check(info1) <= file_size_check(info2)
+  end
+
+  defp sortfn_size_rev({_, info1}, {_, info2}) do
+    file_size_check(info1) >= file_size_check(info2)
+  end
+
   defp mtime_to_string({md, mt}) do
     :erlang.list_to_binary(
       [Date.from_erl!(md) |> Date.to_string, " ",
        Time.from_erl!(mt) |> Time.to_string])
+  end
+
+  defp file_size_check(info) do
+    case file_info(info, :type) do
+      :regular ->
+        case file_info(info, :size) do
+          :undefined -> 0
+          s -> s
+        end
+      _other -> 0
+    end
   end
 
   defp path_directory_info(conn, path) do
