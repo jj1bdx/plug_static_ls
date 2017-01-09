@@ -1,7 +1,8 @@
 <%
   uri = URI.encode(Path.join(basepath, path))
   filepath = Path.join(dirpath, path)
-  {:ok, info} = :prim_file.read_file_info(to_charlist(filepath))
+  IO.inspect filepath, label: "direntry filepath"
+  {:ok, info} = :prim_file.read_link_info(to_charlist(filepath))
   info_type = file_info(info, :type)
   typestr = case info_type do
     :directory -> "[Dir]"
