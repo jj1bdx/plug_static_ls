@@ -47,7 +47,7 @@ Note: Elixir assumes UTF-8 usage on the filenames and internal strings.
 
 ## Usage
 
-Add `PlugStaticLs` *after* `Plug.Static` in `endpoint.ex`. The access restriction options for `PlugStaticLs` should include the corresponding setting of `Plug.Static`.
+Add `PlugStaticLs` *after* `Plug.Static` in `endpoint.ex`. The access restriction options for `PlugStaticLs` should include the corresponding setting of `Plug.Static`. Allow access *only* to the directories where the index is really required.
 
 ```Elixir
 plug Plug.Static, at: "/", from: :my_app
