@@ -1,7 +1,7 @@
 defmodule PlugStaticLs.Mixfile do
   use Mix.Project
 
-  @version "0.5.1"
+  @version "0.5.2"
 
   def project do
     [app: :plug_static_ls,
