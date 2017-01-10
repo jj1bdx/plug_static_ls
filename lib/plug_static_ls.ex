@@ -217,10 +217,9 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       [:path, :basepath, :info, :query]
 
   defp make_ls(dirpath, basepath, host, query) do
-    infolist = dir_file_list(dirpath, get_sortfn(query))
     # Plug.conn.send_resp/3 accepts IOlist in the body
     [header_html(basepath, query),
-      Enum.map(infolist,
+      Enum.map(dir_file_list(dirpath, get_sortfn(query)),
        fn({pathchar, {flag, info}}) ->
          case flag do
            :ok -> direntry_html(
