@@ -2,12 +2,19 @@
 
 Directory Index for Plug/Phoenix Static Assets
 
-## WARNING: inherent vulnerability regarding directory listing
+## WARNING: inherent vulnerabilities regarding directory listing
 
 Providing directory listing may reveal following vulnerabilities:
 
-* Contents of unintended files left in the directory will be shown to the HTTP clients.
+* Contents of unintended files left in the directory will be shown to the HTTP clients, including the search engines.
 * Directory listing requires file stat operations and may result in consuming computing resources.
+* Directory listing reveals not only the file contents but the file name, the last modification time (mtime), and the size.
+
+Here is a list of security advisories *against* making directory listing available to the public:
+
+* [Mitre: CWE-548: Information Exposure Through Directory Listing](http://cwe.mitre.org/data/definitions/548.html)
+* [OWASP Periodic Table of Vulnerabilities - Directory Indexing](https://www.owasp.org/index.php/OWASP_Periodic_Table_of_Vulnerabilities_-_Directory_Indexing)
+* [The Web Application Security Consortium / Directory Indexing](http://projects.webappsec.org/w/page/13246922/Directory%20Indexing)
 
 *Do not provide* directory listing unless you are 100% sure about the contents in the directory.
 
@@ -19,7 +26,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 
     ```elixir
     def deps do
-      [{:plug_static_ls, "~> 0.1.0"}]
+      [{:plug_static_ls, "~> 0.5.2"}]
     end
     ```
 
@@ -40,7 +47,7 @@ Note: Elixir assumes UTF-8 usage on the filenames and internal strings.
 
 ## Usage
 
-Add `PlugStaticLs` *after* `Plug.Static` in `endpoint.ex`
+Add `PlugStaticLs` *after* `Plug.Static` in `endpoint.ex`. The access restriction options for `PlugStaticLs` should include the corresponding setting of `Plug.Static`.
 
 ```Elixir
 plug Plug.Static, at: "/", from: :my_app
