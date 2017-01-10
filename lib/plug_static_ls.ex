@@ -218,30 +218,29 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
   defp make_ls(dirpath, basepath, host, query) do
     infolist = dir_file_list(dirpath, get_sortfn(query))
-    :erlang.list_to_binary(
-      [header_html(basepath, query),
-       Enum.map(infolist,
-        fn({pathchar, info}) ->
-          direntry_html(to_string(pathchar), basepath, info, query)
-        end),
-       footer_html(host)])
+    # Plug.conn.send_resp/3 accepts IOlist in the body
+    [header_html(basepath, query),
+      Enum.map(infolist,
+       fn({pathchar, {flag, info}}) ->
+         case flag do
+           :ok -> direntry_html(
+                    to_string(pathchar), basepath, info, query)
+           :error -> ""
+         end
+       end),
+      footer_html(host)]
   end
 
   defp dir_file_list(dirpath, sortfn) do
     {:ok, list} = :prim_file.list_dir(dirpath)
-    infolist = Enum.map(list,
-      fn(name) ->
-        info =
-          case :prim_file.read_link_info(
-            to_charlist(Path.join(dirpath, to_string(name)))) do
-              {:ok, i} -> i
-              {:error, _} -> nil
-          end
-        {name, info}
-      end)
     Enum.sort(
-      Enum.reject(infolist, fn({_, i}) -> i == nil end),
-      sortfn)
+      Enum.map(list,
+        fn(name) ->
+          {name,
+           :prim_file.read_link_info(
+              to_charlist(Path.join(dirpath, to_string(name))))}
+        end),
+    sortfn)
   end
 
   defp validate_query(nil), do: ""
@@ -315,9 +314,9 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   end
 
   defp mtime_to_string({md, mt}) do
-    :erlang.list_to_binary(
-      [Date.from_erl!(md) |> Date.to_string, " ",
-       Time.from_erl!(mt) |> Time.to_string])
+    (Date.from_erl!(md) |> Date.to_string)
+    <> " "
+    <> (Time.from_erl!(mt) |> Time.to_string)
   end
 
   defp file_size_check(info) do
