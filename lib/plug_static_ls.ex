@@ -294,21 +294,21 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
   defp sortfn_name_rev({name1, _}, {name2, _}), do: name1 >= name2
 
-  defp sortfn_mtime({_, info1}, {_, info2}) do
+  defp sortfn_mtime({_, {:ok, info1}}, {_, {:ok, info2}}) do
     mtime_to_string(file_info(info1, :mtime)) <=
     mtime_to_string(file_info(info2, :mtime))
   end
 
-  defp sortfn_mtime_rev({_, info1}, {_, info2}) do
+  defp sortfn_mtime_rev({_, {:ok, info1}}, {_, {:ok, info2}}) do
     mtime_to_string(file_info(info1, :mtime)) >=
     mtime_to_string(file_info(info2, :mtime))
   end
 
-  defp sortfn_size({_, info1}, {_, info2}) do
+  defp sortfn_size({_, {:ok, info1}}, {_, {:ok, info2}}) do
     file_size_check(info1) <= file_size_check(info2)
   end
 
-  defp sortfn_size_rev({_, info1}, {_, info2}) do
+  defp sortfn_size_rev({_, {:ok, info1}}, {_, {:ok, info2}}) do
     file_size_check(info1) >= file_size_check(info2)
   end
 
