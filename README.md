@@ -20,7 +20,7 @@ Here is a list of security advisories *against* making directory listing availab
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+This package is available in Hex as [plug\_static\_ls](https://hex.pm/packages/plug_static_ls). The package can be installed as:
 
   1. Add `plug_static_ls` to your list of dependencies in `mix.exs`:
 
@@ -56,6 +56,8 @@ plug PlugStaticLs, at: "/", from: :my_app, only: ~w(with_listing)
 # Note: non-existent file will be routed here
 # Explicit plug to catch this case is required
 ```
+
+Dialyzer via [dialyxir](https://github.com/jeremyjh/dialyxir) can be used via `mix dialyzer`.
 
 ## License
 
