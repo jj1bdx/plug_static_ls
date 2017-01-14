@@ -204,7 +204,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     |> halt
   end
 
-  defp serve_directory_listing({:error, conn}, _at, _segments, _sortfn) do
+  defp serve_directory_listing({:error, conn}, _at, _segments, _query) do
     conn
   end
 
@@ -335,6 +335,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       [year, month, day, hour, min, sec]))
   end
 
+  @spec file_size_check(file_info) :: non_neg_integer()
+
   defp file_size_check(info) do
     case file_info(info, :type) do
       :regular ->
@@ -355,10 +357,15 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     end
   end
 
+  @spec path({atom, String.t}, [String.t]) :: String.t
+  @spec path(String.t, [String.t]) :: String.t
+
   defp path({app, from}, segments) when is_atom(app) and is_binary(from),
     do: Path.join([Application.app_dir(app), from|segments])
   defp path(from, segments),
     do: Path.join([from|segments])
+
+  @spec subset([String.t], [String.t]) :: [String.t] | nil
 
   # if not a subset, returns nil instead of []
   defp subset([h|expected], [h|actual]),
@@ -368,9 +375,13 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp subset(_, _),
     do: nil
 
+  @spec invalid_path?([String.t] | []) :: boolean()
+
   defp invalid_path?([h|_]) when h in [".", "..", ""], do: true
   defp invalid_path?([h|t]), do: String.contains?(h, ["/", "\\", ":"]) or invalid_path?(t)
   defp invalid_path?([]), do: false
+
+  @spec rewrite_nullpath([String.t] | []) :: [String.t]
 
   defp rewrite_nullpath([]), do: ["/"]
   defp rewrite_nullpath(list), do: list
