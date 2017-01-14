@@ -26,7 +26,7 @@ This package is available in Hex as [plug\_static\_ls](https://hex.pm/packages/p
 
     ```elixir
     def deps do
-      [{:plug_static_ls, "~> 0.5.2"}]
+      [{:plug_static_ls, "~> 0.6.0"}]
     end
     ```
 
