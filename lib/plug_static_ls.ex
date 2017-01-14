@@ -64,7 +64,7 @@ forwards the connection to the rest of the pipeline.
 
 ## Templates
 
-The following EEx templates are used to build the directory listing page:
+The following EEx templates are used to build the directory listing page, and are essential parts of `PlugStaticLs`:
 
 * `lib/templates/plug_static_ls_header.html.eex`
 * `lib/templates/plug_static_ls_direntry.html.eex`
