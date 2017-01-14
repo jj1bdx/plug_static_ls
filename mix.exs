@@ -33,7 +33,8 @@ defmodule PlugStaticLs.Mixfile do
   defp deps do
     [
       {:plug, "~> 1.0"},
-      {:ex_doc, "~> 0.14", only: :dev}
+      {:ex_doc, "~> 0.14", only: :dev},
+      {:dialyxir, "~> 0.4", only: [:dev], runtime: false}
     ]
   end
 end
