@@ -177,6 +177,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     conn
   end
 
+  @spec uri_decode(binary) :: binary
+
   defp uri_decode(path) do
     try do
       URI.decode(path)
@@ -187,6 +189,9 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   end
 
   # null directory is allowed here
+
+  @spec allowed?([String.t], [String.t], [String.t] | nil) :: boolean()
+
   defp allowed?(_only, _prefix, nil), do: false
   defp allowed?([], [], _list), do: true
   defp allowed?(_only, _prefix, []), do: false
@@ -218,6 +223,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       "lib/templates/plug_static_ls_direntry.html.eex",
       [:path, :basepath, :info, :query]
 
+  @spec make_ls(String.t, String.t, String.t, sorttype) :: iolist()
+
   defp make_ls(dirpath, basepath, host, query) do
     # Plug.conn.send_resp/3 accepts IOlist in the body
     [header_html(basepath, query),
@@ -232,6 +239,12 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       footer_html(host)]
   end
 
+  @typep read_link_info :: {:ok | :error, file_info}
+  @typep name_info :: {String.t, read_link_info}
+  @typep sortfn :: (name_info, name_info -> boolean())
+
+  @spec dir_file_list(String.t, sortfn) :: [name_info()]
+
   defp dir_file_list(dirpath, sortfn) do
     {:ok, list} = :prim_file.list_dir(dirpath)
     Enum.sort(
@@ -244,10 +257,10 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     sortfn)
   end
 
-  @typep read_link_info :: {:ok | :error, file_info}
-  @typep name_info :: {String.t, read_link_info}
+  @typep sorttype :: :none | :name | :name_rev |
+                     :mtime | :mtime_rev | :size | :size_rev
 
-  @spec validate_query(String.t) :: atom
+  @spec validate_query(String.t) :: sorttype
 
   defp validate_query(""), do: :none
   defp validate_query("name"), do: :name
@@ -258,7 +271,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp validate_query("size_rev"), do: :size_rev
   defp validate_query(_), do: :none
 
-  @spec get_sortfn(atom()) :: (name_info, name_info -> boolean())
+  @spec get_sortfn(sorttype) :: sortfn
 
   defp get_sortfn(:none), do: &sortfn_name/2
   defp get_sortfn(:name), do: &sortfn_name/2
@@ -268,7 +281,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp get_sortfn(:size), do: &sortfn_size/2
   defp get_sortfn(:size_rev), do: &sortfn_size_rev/2
 
-  @spec map_sortopt(atom()) ::
+  @spec map_sortopt(sorttype) ::
     %{:name => String.t, :mtime => String.t, :size => String.t}
 
   defp map_sortopt(:none) do
@@ -347,6 +360,9 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
       _other -> 0
     end
   end
+
+  @spec path_directory_info(Plug.Conn.t, String.t)
+        :: {:ok, Plug.Conn.t, String.t} | {:error, Plug.Conn.t}
 
   defp path_directory_info(conn, path) do
     case :prim_file.read_file_info(path) do
