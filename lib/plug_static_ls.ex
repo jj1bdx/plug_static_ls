@@ -242,7 +242,6 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     sortfn)
   end
 
-  defp validate_query(nil), do: ""
   defp validate_query(""), do: ""
   defp validate_query("name"), do: "name"
   defp validate_query("name_rev"), do: "name_rev"
@@ -252,7 +251,6 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp validate_query("size_rev"), do: "size_rev"
   defp validate_query(_), do: ""
 
-  defp get_sortfn(nil), do: &sortfn_name/2
   defp get_sortfn(""), do: &sortfn_name/2
   defp get_sortfn("name"), do: &sortfn_name/2
   defp get_sortfn("name_rev"), do: &sortfn_name_rev/2
@@ -262,9 +260,6 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp get_sortfn("size_rev"), do: &sortfn_size_rev/2
   defp get_sortfn(_), do: &sortfn_name/2
 
-  defp map_sortopt(nil) do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
-  end
   defp map_sortopt("") do
     %{"name" => "name", "mtime" => "mtime", "size" => "size"}
   end
