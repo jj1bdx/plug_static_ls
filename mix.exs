@@ -18,7 +18,7 @@ defmodule PlugStaticLs.Mixfile do
      docs: [extras: ["README.md"], main: "readme",
             source_ref: "v#{@version}",
             source_url: "https://github.com/jj1bdx/plug_static_ls"],
-     dialyzer: [plt_add_deps: :project,
+     dialyzer: [plt_add_deps: :transitive,
                 flags: ["-Wunmatched_returns","-Werror_handling","-Wrace_conditions", "-Wno_opaque"]]]
   end
 
