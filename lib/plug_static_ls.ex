@@ -124,6 +124,8 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   # the `File` operations pass through a single process in order to support node
   # operations that we simply don't need when serving assets.
 
+  @typep file_info :: record(:file_info)
+
   require Record
   Record.defrecordp :file_info, Record.extract(:file_info, from_lib: "kernel/include/file.hrl")
 
@@ -242,75 +244,95 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     sortfn)
   end
 
-  defp validate_query(""), do: ""
-  defp validate_query("name"), do: "name"
-  defp validate_query("name_rev"), do: "name_rev"
-  defp validate_query("mtime"), do: "mtime"
-  defp validate_query("mtime_rev"), do: "mtime_rev"
-  defp validate_query("size"), do: "size"
-  defp validate_query("size_rev"), do: "size_rev"
-  defp validate_query(_), do: ""
+  @typep read_link_info :: {:ok | :error, file_info}
+  @typep name_info :: {String.t, read_link_info}
 
-  defp get_sortfn(""), do: &sortfn_name/2
-  defp get_sortfn("name"), do: &sortfn_name/2
-  defp get_sortfn("name_rev"), do: &sortfn_name_rev/2
-  defp get_sortfn("mtime"), do: &sortfn_mtime/2
-  defp get_sortfn("mtime_rev"), do: &sortfn_mtime_rev/2
-  defp get_sortfn("size"), do: &sortfn_size/2
-  defp get_sortfn("size_rev"), do: &sortfn_size_rev/2
-  defp get_sortfn(_), do: &sortfn_name/2
+  @spec validate_query(String.t) :: atom
 
-  defp map_sortopt("") do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  defp validate_query(""), do: :none
+  defp validate_query("name"), do: :name
+  defp validate_query("name_rev"), do: :name_rev
+  defp validate_query("mtime"), do: :mtime
+  defp validate_query("mtime_rev"), do: :mtime_rev
+  defp validate_query("size"), do: :size
+  defp validate_query("size_rev"), do: :size_rev
+  defp validate_query(_), do: :none
+
+  @spec get_sortfn(atom()) :: (name_info, name_info -> boolean())
+
+  defp get_sortfn(:none), do: &sortfn_name/2
+  defp get_sortfn(:name), do: &sortfn_name/2
+  defp get_sortfn(:name_rev), do: &sortfn_name_rev/2
+  defp get_sortfn(:mtime), do: &sortfn_mtime/2
+  defp get_sortfn(:mtime_rev), do: &sortfn_mtime_rev/2
+  defp get_sortfn(:size), do: &sortfn_size/2
+  defp get_sortfn(:size_rev), do: &sortfn_size_rev/2
+
+  @spec map_sortopt(atom()) ::
+    %{:name => String.t, :mtime => String.t, :size => String.t}
+
+  defp map_sortopt(:none) do
+    %{:name => "name", :mtime => "mtime", :size => "size"}
   end
-  defp map_sortopt("name") do
-    %{"name" => "name_rev", "mtime" => "mtime", "size" => "size"}
+  defp map_sortopt(:name) do
+    %{:name => "name_rev", :mtime => "mtime", :size => "size"}
   end
-  defp map_sortopt("name_rev") do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  defp map_sortopt(:name_rev) do
+    %{:name => "name", :mtime => "mtime", :size => "size"}
   end
-  defp map_sortopt("mtime") do
-    %{"name" => "name", "mtime" => "mtime_rev", "size" => "size"}
+  defp map_sortopt(:mtime) do
+    %{:name => "name", :mtime => "mtime_rev", :size => "size"}
   end
-  defp map_sortopt("mtime_rev") do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  defp map_sortopt(:mtime_rev) do
+    %{:name => "name", :mtime => "mtime", :size => "size"}
   end
-  defp map_sortopt("size") do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size_rev"}
+  defp map_sortopt(:size) do
+    %{:name => "name", :mtime => "mtime", :size => "size_rev"}
   end
-  defp map_sortopt("size_rev") do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
+  defp map_sortopt(:size_rev) do
+    %{:name => "name", :mtime => "mtime", :size => "size"}
   end
-  defp map_sortopt(_) do
-    %{"name" => "name", "mtime" => "mtime", "size" => "size"}
-  end
+
+  @spec sortfn_name(name_info, name_info) :: boolean()
 
   defp sortfn_name({name1, _}, {name2, _}), do: name1 <= name2
 
+  @spec sortfn_name_rev(name_info, name_info) :: boolean()
+
   defp sortfn_name_rev({name1, _}, {name2, _}), do: name1 >= name2
+
+  @spec sortfn_mtime(name_info, name_info) :: boolean()
 
   defp sortfn_mtime({_, {:ok, info1}}, {_, {:ok, info2}}) do
     mtime_to_string(file_info(info1, :mtime)) <=
     mtime_to_string(file_info(info2, :mtime))
   end
 
+  @spec sortfn_mtime_rev(name_info, name_info) :: boolean()
+
   defp sortfn_mtime_rev({_, {:ok, info1}}, {_, {:ok, info2}}) do
     mtime_to_string(file_info(info1, :mtime)) >=
     mtime_to_string(file_info(info2, :mtime))
   end
 
+  @spec sortfn_size(name_info, name_info) :: boolean()
+
   defp sortfn_size({_, {:ok, info1}}, {_, {:ok, info2}}) do
     file_size_check(info1) <= file_size_check(info2)
   end
+
+  @spec sortfn_size_rev(name_info, name_info) :: boolean()
 
   defp sortfn_size_rev({_, {:ok, info1}}, {_, {:ok, info2}}) do
     file_size_check(info1) >= file_size_check(info2)
   end
 
-  defp mtime_to_string({md, mt}) do
-    (Date.from_erl!(md) |> Date.to_string)
-    <> " "
-    <> (Time.from_erl!(mt) |> Time.to_string)
+  @spec mtime_to_string(:calendar.datetime) :: String.t()
+
+  defp mtime_to_string({{year, month, day}, {hour, min, sec}}) do
+    to_string(
+      :io_lib.format("~.4.0w-~.2.0w-~.2.0w ~.2.0w:~.2.0w:~.2.0w",
+      [year, month, day, hour, min, sec]))
   end
 
   defp file_size_check(info) do

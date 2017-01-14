@@ -23,16 +23,16 @@
   end
   map_sortopt = map_sortopt(query)
   querystring = case query do
-    "" -> ""
-    other -> "?sort=" <> other
+    :none -> ""
+    other -> "?sort=" <> to_string(other)
   end
 %>
 <table>
 <tr>
   <td></td>
-  <td><a href="<%= trimmedpath %>/?sort=<%= map_sortopt["name"] %>">Name</a></td>
-  <td><a href="<%= trimmedpath %>/?sort=<%= map_sortopt["mtime"] %>">Last Modified</a></td>
-  <td id="filesize"><a href="<%= trimmedpath %>/?sort=<%= map_sortopt["size"] %>">Size</a></td>
+  <td><a href="<%= trimmedpath %>/?sort=<%= map_sortopt[:name] %>">Name</a></td>
+  <td><a href="<%= trimmedpath %>/?sort=<%= map_sortopt[:mtime] %>">Last Modified</a></td>
+  <td id="filesize"><a href="<%= trimmedpath %>/?sort=<%= map_sortopt[:size] %>">Size</a></td>
 </tr>
 <tr><th colspan="4"><hr/></th></tr>
 <%=

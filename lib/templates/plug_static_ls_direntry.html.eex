@@ -15,8 +15,8 @@
     _ -> ""
   end
   querystring = case query do
-    "" -> ""
-    other -> "?sort=" <> other
+    :none -> ""
+    other -> "?sort=" <> to_string(other)
   end
   uripath = URI.encode(Path.join(basepath, path)) <> querystring
   disppath = Plug.HTML.html_escape(path)
