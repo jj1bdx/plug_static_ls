@@ -134,6 +134,9 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 				 plug_status: 400
   end
 
+  @spec init(Keyword.t) ::
+        {[String.t], String.t| {atom, String.t}, [String.t], [String.t]}
+
   def init(opts) do
     at = Keyword.fetch!(opts, :at)
     from = Keyword.fetch!(opts, :from)
@@ -150,6 +153,10 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
     {Plug.Router.Utils.split(at), from, only, prefix}
   end
+
+  @spec call(Plug.Conn.t,
+        {[String.t], String.t| {atom, String.t}, [String.t], [String.t]}) ::
+        Plug.Conn.t | no_return()
 
   def call(conn = %Conn{method: meth}, {at, from, only, prefix})
       when meth in @allowed_methods do
@@ -198,6 +205,10 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp allowed?(only, prefix, [h|_]) do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
+
+  @spec serve_directory_listing(
+          {:ok, Plug.Conn.t, String.t} | {:error, Plug.Conn.t},
+          [String.t], [String.t], sorttype) :: Plug.Conn.t | no_return()
 
   defp serve_directory_listing({:ok, conn, path}, at, segments, query) do
     basepath = Path.join("/", Path.join(
