@@ -405,7 +405,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   @spec invalid_path?([String.t] | []) :: boolean()
 
   defp invalid_path?([h|_]) when h in [".", "..", ""], do: true
-  defp invalid_path?([h|t]), do: String.contains?(h, ["/", "\\", ":"]) or invalid_path?(t)
+  defp invalid_path?([h|t]), do: String.contains?(h, ["/", "\\", ":", "\0"]) or invalid_path?(t)
   defp invalid_path?([]), do: false
 
   @spec rewrite_nullpath([String.t] | []) :: [String.t]
