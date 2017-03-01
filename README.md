@@ -2,6 +2,14 @@
 
 Directory Index for Plug/Phoenix Static Assets
 
+## Security fix
+
+* Null byte injection in Plug.Static source code affected PlugStaticLs
+* See https://elixirforum.com/t/security-releases-for-plug/3913
+* Versions affected: v0.6.0 and all earlier versions v0.[012345].x
+* Version fixed: v0.6.1
+* Thanks to: José Valim for reporting and summary (See the Elixir Forum article for the original contributors)
+
 ## WARNING: inherent vulnerabilities regarding directory listing
 
 Providing directory listing may reveal following vulnerabilities:
@@ -26,7 +34,7 @@ This package is available in Hex as [plug\_static\_ls](https://hex.pm/packages/p
 
     ```elixir
     def deps do
-      [{:plug_static_ls, "~> 0.6.0"}]
+      [{:plug_static_ls, "~> 0.6.1"}]
     end
     ```
 
