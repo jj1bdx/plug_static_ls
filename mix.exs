@@ -1,7 +1,7 @@
 defmodule PlugStaticLs.Mixfile do
   use Mix.Project
 
-  @version "0.6.0"
+  @version "0.6.1"
 
   def project do
     [app: :plug_static_ls,
@@ -34,7 +34,7 @@ defmodule PlugStaticLs.Mixfile do
 
   defp deps do
     [
-      {:plug, "~> 1.0"},
+      {:plug, "~> 1.3.2"},
       {:ex_doc, "~> 0.14", only: :dev},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false}
     ]
