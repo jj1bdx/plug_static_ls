@@ -16,97 +16,97 @@
 defmodule PlugStaticLs do
   @moduledoc """
 
-A plug for serving directory listing on a static asset directory.
+  A plug for serving directory listing on a static asset directory.
 
-Note: this module only serves the directory listing. For serving
-the static asset contents, use `Plug.Static`.
+  Note: this module only serves the directory listing. For serving
+  the static asset contents, use `Plug.Static`.
 
-It requires two options:
+  It requires two options:
 
-* `:at` - the request path to reach for the static assets.
-  It must be a string.
+  * `:at` - the request path to reach for the static assets.
+    It must be a string.
 
-* `:from` - the file system path to read the static assets from.
-  It can be either: a string containing a file system path, an
-  atom representing the application name (where assets will
-  be served from `priv/static`), or a tuple containing the
-  application name and the directory to serve assets from (besides
-  `priv/static`).
+  * `:from` - the file system path to read the static assets from.
+    It can be either: a string containing a file system path, an
+    atom representing the application name (where assets will
+    be served from `priv/static`), or a tuple containing the
+    application name and the directory to serve assets from (besides
+    `priv/static`).
 
-The preferred form is to use `:from` with an atom or tuple,
-since it will make your application independent from the
-starting directory. On the other hand, if you want to serve
-the directory listing for a specific directory, use the file
-system path.
+  The preferred form is to use `:from` with an atom or tuple,
+  since it will make your application independent from the
+  starting directory. On the other hand, if you want to serve
+  the directory listing for a specific directory, use the file
+  system path.
 
-If a static asset directory specified is not found, `PlugStaticLs`
-simply forwards the connection to the rest of the pipeline.
-If the directory is found, `PlugStaticLs` verifies the path
-given in `conn.path_info` and the path must be a subset of `:at` path
-for showing the directory listing; otherwise `PlugStaticLs`
-forwards the connection to the rest of the pipeline.
+  If a static asset directory specified is not found, `PlugStaticLs`
+  simply forwards the connection to the rest of the pipeline.
+  If the directory is found, `PlugStaticLs` verifies the path
+  given in `conn.path_info` and the path must be a subset of `:at` path
+  for showing the directory listing; otherwise `PlugStaticLs`
+  forwards the connection to the rest of the pipeline.
 
-## Options
+  ## Options
 
-* `:only` - filters which requests to serve. This is useful to avoid
-  file system traversals on every request when this plug is mounted
-  at `"/"`. For example, if `only: ["dir1", "dir2"]` is
-  specified, only files under the "dir1" and "dir2" directories
-  will be served by `PlugStaticLs`. Defaults to `nil` (no filtering).
+  * `:only` - filters which requests to serve. This is useful to avoid
+    file system traversals on every request when this plug is mounted
+    at `"/"`. For example, if `only: ["dir1", "dir2"]` is
+    specified, only files under the "dir1" and "dir2" directories
+    will be served by `PlugStaticLs`. Defaults to `nil` (no filtering).
 
-* `:only_matching` - a relaxed version of `:only` that will
-  serve any request as long as one of the given values matches the
-  given path. For example, `only_matching: ["images", "logos"]`
-  will match any request that starts at "images" or "logos",
-  be it "/images", "/images-high", "/logos"
-  or "/logos-high". Such matches are useful when serving
-  digested files at the root. Defaults to `nil` (no filtering).
+  * `:only_matching` - a relaxed version of `:only` that will
+    serve any request as long as one of the given values matches the
+    given path. For example, `only_matching: ["images", "logos"]`
+    will match any request that starts at "images" or "logos",
+    be it "/images", "/images-high", "/logos"
+    or "/logos-high". Such matches are useful when serving
+    digested files at the root. Defaults to `nil` (no filtering).
 
-## Templates
+  ## Templates
 
-The following EEx templates are used to build the directory listing page, and are essential parts of `PlugStaticLs`:
+  The following EEx templates are used to build the directory listing page, and are essential parts of `PlugStaticLs`:
 
-* `lib/templates/plug_static_ls_header.html.eex`
-* `lib/templates/plug_static_ls_direntry.html.eex`
-* `lib/templates/plug_static_ls_footer.html.eex`
+  * `lib/templates/plug_static_ls_header.html.eex`
+  * `lib/templates/plug_static_ls_direntry.html.eex`
+  * `lib/templates/plug_static_ls_footer.html.eex`
 
-## Examples
+  ## Examples
 
-This plug can be mounted in a `Plug.Builder` pipeline as follows,
-with and *after* `Plug.Static`:
+  This plug can be mounted in a `Plug.Builder` pipeline as follows,
+  with and *after* `Plug.Static`:
 
-      defmodule MyPlug do
-        use Plug.Builder
+        defmodule MyPlug do
+          use Plug.Builder
 
-        plug Plug.Static,
-          at: "/public",
-          from: :my_app,
-          only: ~w(images robots.txt)
-        plug PlugStaticLs,
-          at: "/public",
-          from: :my_app,
-          only: ~w(images)
+          plug Plug.Static,
+            at: "/public",
+            from: :my_app,
+            only: ~w(images robots.txt)
+          plug PlugStaticLs,
+            at: "/public",
+            from: :my_app,
+            only: ~w(images)
 
-        plug :not_found
+          plug :not_found
 
-        def not_found(conn, _) do
-          send_resp(conn, 404, "not found")
+          def not_found(conn, _) do
+            send_resp(conn, 404, "not found")
+          end
         end
-      end
 
-## Related modules
+  ## Related modules
 
-For serving `index.html` for a directory name, use [`Plug.Static.IndexHtml`](https://github.com/mbuhot/plug_static_index_html/).
+  For serving `index.html` for a directory name, use [`Plug.Static.IndexHtml`](https://github.com/mbuhot/plug_static_index_html/).
 
-For serving static files, use `Plug.Static`.
+  For serving static files, use `Plug.Static`.
 
-## Acknowledgment
+  ## Acknowledgment
 
-The source code is derived from `Plug.Static` module.
+  The source code is derived from `Plug.Static` module.
 
-The directory listing page design is derived from [Yaws](http://yaws.hyber.org) Web Server.
+  The directory listing page design is derived from [Yaws](http://yaws.hyber.org) Web Server.
 
-"""
+  """
 
   # Note for module development:
   # No compression
@@ -127,15 +127,15 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   @typep file_info :: record(:file_info)
 
   require Record
-  Record.defrecordp :file_info, Record.extract(:file_info, from_lib: "kernel/include/file.hrl")
+  Record.defrecordp(:file_info, Record.extract(:file_info, from_lib: "kernel/include/file.hrl"))
 
   defmodule InvalidPathError do
     defexception message: "invalid path for static asset directory listing",
-				 plug_status: 400
+                 plug_status: 400
   end
 
-  @spec init(Keyword.t) ::
-        {[String.t], String.t| {atom, String.t}, [String.t], [String.t]}
+  @spec init(Keyword.t()) ::
+          {[String.t()], String.t() | {atom, String.t()}, [String.t()], [String.t()]}
 
   def init(opts) do
     at = Keyword.fetch!(opts, :at)
@@ -154,9 +154,10 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     {Plug.Router.Utils.split(at), from, only, prefix}
   end
 
-  @spec call(Plug.Conn.t,
-        {[String.t], String.t| {atom, String.t}, [String.t], [String.t]}) ::
-        Plug.Conn.t | no_return()
+  @spec call(
+          Plug.Conn.t(),
+          {[String.t()], String.t() | {atom, String.t()}, [String.t()], [String.t()]}
+        ) :: Plug.Conn.t() | no_return()
 
   def call(conn = %Conn{method: meth}, {at, from, only, prefix})
       when meth in @allowed_methods do
@@ -173,8 +174,7 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
       path = path(from, segments)
       directory_info = path_directory_info(conn, path)
-      serve_directory_listing(directory_info,
-                              at, segments, query)
+      serve_directory_listing(directory_info, at, segments, query)
     else
       conn
     end
@@ -197,23 +197,30 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
 
   # null directory is allowed here
 
-  @spec allowed?([String.t], [String.t], [String.t] | nil) :: boolean()
+  @spec allowed?([String.t()], [String.t()], [String.t()] | nil) :: boolean()
 
   defp allowed?(_only, _prefix, nil), do: false
   defp allowed?([], [], _list), do: true
   defp allowed?(_only, _prefix, []), do: false
-  defp allowed?(only, prefix, [h|_]) do
+
+  defp allowed?(only, prefix, [h | _]) do
     h in only or match?({0, _}, prefix != [] and :binary.match(h, prefix))
   end
 
   @spec serve_directory_listing(
-          {:ok, Plug.Conn.t, String.t} | {:error, Plug.Conn.t},
-          [String.t], [String.t], sorttype) :: Plug.Conn.t | no_return()
+          {:ok, Plug.Conn.t(), String.t()} | {:error, Plug.Conn.t()},
+          [String.t()],
+          [String.t()],
+          sorttype
+        ) :: Plug.Conn.t() | no_return()
 
   defp serve_directory_listing({:ok, conn, path}, at, segments, query) do
-    basepath = Path.join("/", Path.join(
-                 Path.join(rewrite_nullpath(at)),
-                 Path.join(rewrite_nullpath(segments))))
+    basepath =
+      Path.join(
+        "/",
+        Path.join(Path.join(rewrite_nullpath(at)), Path.join(rewrite_nullpath(segments)))
+      )
+
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, make_ls(path, basepath, conn.host, query))
@@ -225,53 +232,66 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   end
 
   require EEx
-  EEx.function_from_file :defp, :header_html,
-      "lib/templates/plug_static_ls_header.html.eex",
-      [:basepath, :query]
-  EEx.function_from_file :defp, :footer_html,
-      "lib/templates/plug_static_ls_footer.html.eex", [:host]
-  EEx.function_from_file :defp, :direntry_html,
-      "lib/templates/plug_static_ls_direntry.html.eex",
-      [:path, :basepath, :info, :query]
 
-  @spec make_ls(String.t, String.t, String.t, sorttype) :: iolist()
+  EEx.function_from_file(:defp, :header_html, "lib/templates/plug_static_ls_header.html.eex", [
+    :basepath,
+    :query
+  ])
+
+  EEx.function_from_file(:defp, :footer_html, "lib/templates/plug_static_ls_footer.html.eex", [
+    :host
+  ])
+
+  EEx.function_from_file(
+    :defp,
+    :direntry_html,
+    "lib/templates/plug_static_ls_direntry.html.eex",
+    [:path, :basepath, :info, :query]
+  )
+
+  @spec make_ls(String.t(), String.t(), String.t(), sorttype) :: iolist()
 
   defp make_ls(dirpath, basepath, host, query) do
     # Plug.conn.send_resp/3 accepts IOlist in the body
-    [header_html(basepath, query),
-      Enum.map(dir_file_list(dirpath, get_sortfn(query)),
-       fn({pathchar, {flag, info}}) ->
-         case flag do
-           :ok -> direntry_html(
-                    to_string(pathchar), basepath, info, query)
-           :error -> ""
-         end
-       end),
-      footer_html(host)]
+    [
+      header_html(basepath, query),
+      Enum.map(dir_file_list(dirpath, get_sortfn(query)), fn {pathchar, {flag, info}} ->
+        case flag do
+          :ok -> direntry_html(to_string(pathchar), basepath, info, query)
+          :error -> ""
+        end
+      end),
+      footer_html(host)
+    ]
   end
 
   @typep read_link_info :: {:ok | :error, file_info}
-  @typep name_info :: {String.t, read_link_info}
+  @typep name_info :: {String.t(), read_link_info}
   @typep sortfn :: (name_info, name_info -> boolean())
 
-  @spec dir_file_list(String.t, sortfn) :: [name_info()]
+  @spec dir_file_list(String.t(), sortfn) :: [name_info()]
 
   defp dir_file_list(dirpath, sortfn) do
     {:ok, list} = :prim_file.list_dir(dirpath)
+
     Enum.sort(
-      Enum.map(list,
-        fn(name) ->
-          {name,
-           :prim_file.read_link_info(
-              to_charlist(Path.join(dirpath, to_string(name))))}
-        end),
-    sortfn)
+      Enum.map(list, fn name ->
+        {name, :prim_file.read_link_info(to_charlist(Path.join(dirpath, to_string(name))))}
+      end),
+      sortfn
+    )
   end
 
-  @typep sorttype :: :none | :name | :name_rev |
-                     :mtime | :mtime_rev | :size | :size_rev
+  @typep sorttype ::
+           :none
+           | :name
+           | :name_rev
+           | :mtime
+           | :mtime_rev
+           | :size
+           | :size_rev
 
-  @spec validate_query(String.t) :: sorttype
+  @spec validate_query(String.t()) :: sorttype
 
   defp validate_query(""), do: :none
   defp validate_query("name"), do: :name
@@ -292,27 +312,32 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   defp get_sortfn(:size), do: &sortfn_size/2
   defp get_sortfn(:size_rev), do: &sortfn_size_rev/2
 
-  @spec map_sortopt(sorttype) ::
-    %{:name => String.t, :mtime => String.t, :size => String.t}
+  @spec map_sortopt(sorttype) :: %{:name => String.t(), :mtime => String.t(), :size => String.t()}
 
   defp map_sortopt(:none) do
     %{:name => "name", :mtime => "mtime", :size => "size"}
   end
+
   defp map_sortopt(:name) do
     %{:name => "name_rev", :mtime => "mtime", :size => "size"}
   end
+
   defp map_sortopt(:name_rev) do
     %{:name => "name", :mtime => "mtime", :size => "size"}
   end
+
   defp map_sortopt(:mtime) do
     %{:name => "name", :mtime => "mtime_rev", :size => "size"}
   end
+
   defp map_sortopt(:mtime_rev) do
     %{:name => "name", :mtime => "mtime", :size => "size"}
   end
+
   defp map_sortopt(:size) do
     %{:name => "name", :mtime => "mtime", :size => "size_rev"}
   end
+
   defp map_sortopt(:size_rev) do
     %{:name => "name", :mtime => "mtime", :size => "size"}
   end
@@ -328,15 +353,13 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
   @spec sortfn_mtime(name_info, name_info) :: boolean()
 
   defp sortfn_mtime({_, {:ok, info1}}, {_, {:ok, info2}}) do
-    mtime_to_string(file_info(info1, :mtime)) <=
-    mtime_to_string(file_info(info2, :mtime))
+    mtime_to_string(file_info(info1, :mtime)) <= mtime_to_string(file_info(info2, :mtime))
   end
 
   @spec sortfn_mtime_rev(name_info, name_info) :: boolean()
 
   defp sortfn_mtime_rev({_, {:ok, info1}}, {_, {:ok, info2}}) do
-    mtime_to_string(file_info(info1, :mtime)) >=
-    mtime_to_string(file_info(info2, :mtime))
+    mtime_to_string(file_info(info1, :mtime)) >= mtime_to_string(file_info(info2, :mtime))
   end
 
   @spec sortfn_size(name_info, name_info) :: boolean()
@@ -351,12 +374,19 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
     file_size_check(info1) >= file_size_check(info2)
   end
 
-  @spec mtime_to_string(:calendar.datetime) :: String.t()
+  @spec mtime_to_string(:calendar.datetime()) :: String.t()
 
   defp mtime_to_string({{year, month, day}, {hour, min, sec}}) do
     to_string(
-      :io_lib.format("~.4.0w-~.2.0w-~.2.0w ~.2.0w:~.2.0w:~.2.0w",
-      [year, month, day, hour, min, sec]))
+      :io_lib.format("~.4.0w-~.2.0w-~.2.0w ~.2.0w:~.2.0w:~.2.0w", [
+        year,
+        month,
+        day,
+        hour,
+        min,
+        sec
+      ])
+    )
   end
 
   @spec file_size_check(file_info) :: non_neg_integer()
@@ -368,47 +398,47 @@ The directory listing page design is derived from [Yaws](http://yaws.hyber.org) 
           :undefined -> 0
           s -> s
         end
-      _other -> 0
+
+      _other ->
+        0
     end
   end
 
-  @spec path_directory_info(Plug.Conn.t, String.t)
-        :: {:ok, Plug.Conn.t, String.t} | {:error, Plug.Conn.t}
+  @spec path_directory_info(Plug.Conn.t(), String.t()) ::
+          {:ok, Plug.Conn.t(), String.t()} | {:error, Plug.Conn.t()}
 
   defp path_directory_info(conn, path) do
     case :prim_file.read_file_info(path) do
       {:ok, file_info(type: :directory) = _file_info} ->
         {:ok, conn, path}
+
       _other ->
         {:error, conn}
     end
   end
 
-  @spec path({atom, String.t}, [String.t]) :: String.t
-  @spec path(String.t, [String.t]) :: String.t
+  @spec path({atom, String.t()}, [String.t()]) :: String.t()
+  @spec path(String.t(), [String.t()]) :: String.t()
 
   defp path({app, from}, segments) when is_atom(app) and is_binary(from),
-    do: Path.join([Application.app_dir(app), from|segments])
-  defp path(from, segments),
-    do: Path.join([from|segments])
+    do: Path.join([Application.app_dir(app), from | segments])
 
-  @spec subset([String.t], [String.t]) :: [String.t] | nil
+  defp path(from, segments), do: Path.join([from | segments])
+
+  @spec subset([String.t()], [String.t()]) :: [String.t()] | nil
 
   # if not a subset, returns nil instead of []
-  defp subset([h|expected], [h|actual]),
-    do: subset(expected, actual)
-  defp subset([], actual),
-    do: actual
-  defp subset(_, _),
-    do: nil
+  defp subset([h | expected], [h | actual]), do: subset(expected, actual)
+  defp subset([], actual), do: actual
+  defp subset(_, _), do: nil
 
-  @spec invalid_path?([String.t] | []) :: boolean()
+  @spec invalid_path?([String.t()] | []) :: boolean()
 
-  defp invalid_path?([h|_]) when h in [".", "..", ""], do: true
-  defp invalid_path?([h|t]), do: String.contains?(h, ["/", "\\", ":", "\0"]) or invalid_path?(t)
+  defp invalid_path?([h | _]) when h in [".", "..", ""], do: true
+  defp invalid_path?([h | t]), do: String.contains?(h, ["/", "\\", ":", "\0"]) or invalid_path?(t)
   defp invalid_path?([]), do: false
 
-  @spec rewrite_nullpath([String.t] | []) :: [String.t]
+  @spec rewrite_nullpath([String.t()] | []) :: [String.t()]
 
   defp rewrite_nullpath([]), do: ["/"]
   defp rewrite_nullpath(list), do: list
